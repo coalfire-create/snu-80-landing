@@ -3,7 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
-import { textShape, globeShape, terrainShape, ringShape, snuEmblemShape } from './shapes.js'
+import { textShape, globeShape, terrainShape, ringShape, snuOfficialEmblemShape } from './shapes.js'
 
 const NOISE = /* glsl */ `
   float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -58,7 +58,8 @@ const particleVertex = /* glsl */ `
 
   vec3 shapePos(float i){
     if (i < 0.5) return position;
-    if (i < 1.5) return rotX(0.1) * rotY(uTime * 0.2) * p1 + vec3(uGlobeX, 0.0, 0.0);
+    // Majestic SNU Official Emblem: Firmly facing forward with zero rotation, standing majestic and clear
+    if (i < 1.5) return p1 + vec3(uGlobeX, 0.0, 0.0);
     if (i < 2.5) return vec3(p2.x, -3.0 + terrainH(p2), p2.z);
     if (i < 3.5) return rotX(0.42) * rotY(uRingRot + uTime * 0.05) * p3;
     return p4;
@@ -67,12 +68,20 @@ const particleVertex = /* glsl */ `
   vec3 shapeColor(float i, vec3 p){
     if (i < 0.5) return mix(vec3(0.85, 0.9, 1.0), vec3(0.35, 0.55, 1.0), aRand);
     if (i < 1.5) {
-      // SNU Official Emblem Color: Royal SNU Blue with Radiant Gold/Platinum highlights
-      vec3 royalBlue = mix(vec3(0.12, 0.32, 0.95), vec3(0.35, 0.65, 1.0), aRand);
-      vec3 goldAccent = vec3(1.0, 0.84, 0.36) * 1.9;
-      float shimmer = sin(uTime * 1.8 + p1.x * 1.5 + p1.y * 1.5) * 0.5 + 0.5;
-      float isGold = smoothstep(0.55, 0.98, aRand * 0.65 + shimmer * 0.45);
-      return mix(royalBlue, goldAccent, isGold);
+      // Authentic SNU Official Seal: Classic Deep Blue (#0F0F70) & Brilliant Gold/Platinum Radiance
+      vec3 snuBlue = vec3(0.08, 0.32, 0.98);
+      vec3 sapphire = vec3(0.38, 0.72, 1.0);
+      vec3 baseEmblem = mix(snuBlue, sapphire, aRand * 0.7);
+
+      vec3 radiantGold = vec3(1.0, 0.86, 0.40) * 2.2;
+      vec3 platinum = vec3(0.96, 0.98, 1.0) * 1.8;
+
+      float shimmer = sin(uTime * 1.4 + p1.y * 1.4) * 0.5 + 0.5;
+      float isGold = smoothstep(0.48, 0.92, aRand * 0.6 + shimmer * 0.35);
+
+      vec3 core = mix(baseEmblem, radiantGold, isGold);
+      float halo = smoothstep(3.2, 4.6, length(p1.xy));
+      return mix(core, platinum, halo * 0.45);
     }
     if (i < 2.5) {
       float h = terrainH(p2) / 4.2;
@@ -223,10 +232,10 @@ export class Stage {
     const n = this.count
     const geo = new THREE.BufferGeometry()
     this.globeR = mobile ? 2.1 : 3.1
-    this.emblemSize = mobile ? 4.2 : 5.8
+    this.emblemSize = mobile ? 5.8 : 8.8
     const serif = '900 260px "Noto Serif KR", serif'
     geo.setAttribute('position', new THREE.BufferAttribute(textShape(n, 'SNU', { width: mobile ? 4.6 : 10, font: serif, y: mobile ? 1.8 : 1.4 }), 3))
-    geo.setAttribute('p1', new THREE.BufferAttribute(snuEmblemShape(n, this.emblemSize), 3))
+    geo.setAttribute('p1', new THREE.BufferAttribute(snuOfficialEmblemShape(n, this.emblemSize), 3))
     geo.setAttribute('p2', new THREE.BufferAttribute(terrainShape(n), 3))
     geo.setAttribute('p3', new THREE.BufferAttribute(ringShape(n), 3))
     geo.setAttribute('p4', new THREE.BufferAttribute(textShape(n, '80', { width: mobile ? 3.8 : 5.2, font: serif, depth: 0.6, y: 2.4 }), 3))

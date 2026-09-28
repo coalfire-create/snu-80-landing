@@ -51,210 +51,42 @@ export function textShape(count, text, { width = 11, font = '900 220px "Noto Ser
   return out
 }
 
-// Seoul National University Official Emblem: Laurel wreath, crossed pen & torch, open book, and motto.
-export function snuEmblemShape(count, size = 6.2, { depth = 0.55 } = {}) {
-  const cw = 1100
-  const ch = 1100
-  const canvas = document.createElement('canvas')
-  canvas.width = cw
-  canvas.height = ch
-  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+import emblemData from './snu_emblem_data.json'
 
-  ctx.fillStyle = '#000'
-  ctx.fillRect(0, 0, cw, ch)
+// Seoul National University Official Emblem (정장): Laurel wreath, crossed pen & torch, open book, and '샤' gate.
+// Directly sampled from the authentic SNU official seal.
+export function snuOfficialEmblemShape(count, size = 8.6, { depth = 0.35, y = 0.1 } = {}) {
+  const { width, height, points } = emblemData
+  const cx = width / 2
+  const cy = height / 2
+  const scale = size / Math.max(width, height)
 
-  ctx.fillStyle = '#fff'
-  ctx.strokeStyle = '#fff'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-
-  const cx = cw / 2
-  const cy = ch / 2
-
-  // 1. Double Concentric Rings
-  ctx.lineWidth = 14
-  ctx.beginPath()
-  ctx.arc(cx, cy, 460, 0, Math.PI * 2)
-  ctx.stroke()
-
-  ctx.lineWidth = 8
-  ctx.beginPath()
-  ctx.arc(cx, cy, 395, 0, Math.PI * 2)
-  ctx.stroke()
-
-  // 2. Circular Text along the Ring
-  ctx.save()
-  ctx.font = 'bold 36px "Cormorant Garamond", serif'
-  const textTop = '· SEOUL NATIONAL UNIVERSITY · EST.1946'
-  const textRadius = 428
-  const startAngle = -Math.PI * 0.82
-  const endAngle = Math.PI * -0.18
-  const angleStep = (endAngle - startAngle) / textTop.length
-  for (let i = 0; i < textTop.length; i++) {
-    const a = startAngle + i * angleStep
-    ctx.save()
-    ctx.translate(cx + Math.cos(a) * textRadius, cy + Math.sin(a) * textRadius)
-    ctx.rotate(a + Math.PI / 2)
-    ctx.fillText(textTop[i], 0, 0)
-    ctx.restore()
-  }
-  ctx.restore()
-
-  // 3. Laurel Wreath (월계관) - Left and Right branches
-  const drawLaurel = (sign) => {
-    ctx.save()
-    ctx.translate(cx, cy)
-    ctx.scale(sign, 1)
-
-    // Main stem curve
-    ctx.lineWidth = 6
-    ctx.beginPath()
-    ctx.arc(-20, 20, 310, Math.PI * 0.55, Math.PI * 1.35)
-    ctx.stroke()
-
-    // Laurel leaves
-    for (let t = 0.58; t <= 1.32; t += 0.055) {
-      const a = Math.PI * t
-      const lx = -20 + Math.cos(a) * 310
-      const ly = 20 + Math.sin(a) * 310
-      const rot = a + Math.PI / 2
-
-      ctx.save()
-      ctx.translate(lx, ly)
-      ctx.rotate(rot)
-
-      // Leaf pair
-      for (const offset of [-18, 18]) {
-        ctx.beginPath()
-        ctx.ellipse(offset, -12, 18, 9, Math.PI / 4, 0, Math.PI * 2)
-        ctx.fill()
-      }
-      ctx.restore()
-    }
-    ctx.restore()
-  }
-  drawLaurel(1)
-  drawLaurel(-1)
-
-  // 4. Crossed Pen & Torch
-  ctx.save()
-  ctx.translate(cx, cy)
-
-  // Pen (left-bottom to right-top)
-  ctx.save()
-  ctx.rotate(-Math.PI / 4.2)
-  ctx.fillRect(-12, -260, 24, 520)
-  // Nib
-  ctx.beginPath()
-  ctx.moveTo(-16, -260)
-  ctx.lineTo(16, -260)
-  ctx.lineTo(0, -320)
-  ctx.closePath()
-  ctx.fill()
-  ctx.restore()
-
-  // Torch (right-bottom to left-top)
-  ctx.save()
-  ctx.rotate(Math.PI / 4.2)
-  ctx.fillRect(-14, -250, 28, 500)
-  // Torch Head & Flame
-  ctx.beginPath()
-  ctx.moveTo(-28, -250)
-  ctx.lineTo(28, -250)
-  ctx.lineTo(20, -290)
-  ctx.lineTo(-20, -290)
-  ctx.closePath()
-  ctx.fill()
-
-  // Flame
-  ctx.beginPath()
-  ctx.moveTo(0, -350)
-  ctx.bezierCurveTo(45, -310, 30, -280, 0, -290)
-  ctx.bezierCurveTo(-30, -280, -45, -310, 0, -350)
-  ctx.fill()
-  ctx.restore()
-
-  ctx.restore()
-
-  // 5. Open Book (펼쳐진 책) in Center
-  ctx.save()
-  ctx.translate(cx, cy + 30)
-
-  // Book base shape
-  ctx.beginPath()
-  ctx.moveTo(0, -85)
-  // Top left page
-  ctx.bezierCurveTo(-70, -115, -180, -95, -240, -65)
-  ctx.lineTo(-235, 75)
-  // Bottom left page
-  ctx.bezierCurveTo(-170, 45, -70, 75, 0, 95)
-  // Bottom right page
-  ctx.bezierCurveTo(70, 75, 170, 45, 235, 75)
-  ctx.lineTo(240, -65)
-  // Top right page
-  ctx.bezierCurveTo(180, -95, 70, -115, 0, -85)
-  ctx.closePath()
-  ctx.fill()
-
-  // Inner book lines (shadow/pages)
-  ctx.strokeStyle = '#000'
-  ctx.lineWidth = 8
-  ctx.beginPath()
-  ctx.moveTo(0, -85)
-  ctx.lineTo(0, 95)
-  ctx.stroke()
-
-  // Motto on Book
-  ctx.fillStyle = '#000'
-  ctx.font = 'bold 30px "Cormorant Garamond", serif'
-  ctx.fillText('VERITAS', -115, -10)
-  ctx.fillText('LUX MEA', 115, -10)
-
-  ctx.restore()
-
-  // 6. Base Ribbon with 'VERITAS LUX MEA' & SNU Initial
-  ctx.save()
-  ctx.translate(cx, cy + 240)
-  ctx.fillStyle = '#fff'
-  ctx.beginPath()
-  ctx.moveTo(-180, 0)
-  ctx.bezierCurveTo(-90, -25, 90, -25, 180, 0)
-  ctx.bezierCurveTo(90, 45, -90, 45, -180, 0)
-  ctx.fill()
-  ctx.restore()
-
-  // Sample points into 3D Float32Array
-  const data = ctx.getImageData(0, 0, cw, ch).data
-  const pts = []
-  let minX = cw, maxX = 0, minY = ch, maxY = 0
-  for (let py = 0; py < ch; py += 2) {
-    for (let px = 0; px < cw; px += 2) {
-      if (data[(py * cw + px) * 4] > 120) {
-        pts.push(px, py)
-        minX = Math.min(minX, px); maxX = Math.max(maxX, px)
-        minY = Math.min(minY, py); maxY = Math.max(maxY, py)
-      }
-    }
-  }
-
-  const scale = size / Math.max(1, maxX - minX)
   const out = new Float32Array(count * 3)
-  for (let i = 0; i < count; i++) {
-    const j = Math.floor(Math.random() * (pts.length / 2)) * 2
-    const px = pts[j]
-    const py = pts[j + 1]
+  const pLen = points.length
+  const mainCount = Math.floor(count * 0.88)
 
-    // Distance from center for radial depth curvature (coin relief effect)
-    const dx = (px - cx) * scale
-    const dy = -(py - cy) * scale
-    const r = Math.sqrt(dx * dx + dy * dy)
+  for (let i = 0; i < mainCount; i++) {
+    const pt = points[Math.floor(Math.random() * pLen)]
+    // Map to 3D coordinates (Y inverted for 3D world)
+    const px = (pt[0] - cx + rand(-0.35, 0.35)) * scale
+    const py = -(pt[1] - cy + rand(-0.35, 0.35)) * scale + y
+    const dist = Math.sqrt(px * px + py * py)
+    const z = (1 - Math.min(dist / (size * 0.5), 1)) * depth + rand(-0.06, 0.06)
 
-    out[i * 3] = dx + rand(-0.02, 0.02)
-    out[i * 3 + 1] = dy + rand(-0.02, 0.02)
-    // Curvature: outer ring curves slightly backwards, central elements pop forward
-    const relief = (1 - Math.min(r / (size * 0.5), 1)) * depth * 0.8
-    out[i * 3 + 2] = relief + rand(-depth * 0.25, depth * 0.25)
+    out[i * 3] = px
+    out[i * 3 + 1] = py
+    out[i * 3 + 2] = z
   }
+
+  // Soft radiant cosmic starlight halo around the majestic emblem
+  for (let i = mainCount; i < count; i++) {
+    const a = Math.random() * Math.PI * 2
+    const r = (size * 0.44) + Math.pow(Math.random(), 2) * (size * 0.3)
+    out[i * 3] = Math.cos(a) * r
+    out[i * 3 + 1] = Math.sin(a) * r + y
+    out[i * 3 + 2] = rand(-0.25, 0.25)
+  }
+
   return out
 }
 
