@@ -78,38 +78,28 @@ function getEmblemPoints() {
   ctx.translate(-212.27147, 92.121406)
   ctx.transform(1.6999673, 0, 0, 1.6999673, -205.58145, 5.3577358)
 
-  const path = new Path2D(snuPath)
-
-  // 1. Draw outer & inner stroke edges (strong contrast)
-  ctx.lineWidth = 1.8
-  ctx.strokeStyle = '#ffffff'
-  ctx.stroke(path)
-
-  // 2. Lightly fill the body for subtle interior density
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.22)'
-  ctx.fill(path)
+  // Fill the seal exactly as the SVG does. Stroking it instead (at ~11x scale)
+  // swelled every line past the gaps between letters and leaves.
+  ctx.fillStyle = '#ffffff'
+  ctx.fill(new Path2D(snuPath), 'nonzero')
 
   const data = ctx.getImageData(0, 0, cw, ch).data
+  const inside = (x, y) => x >= 0 && y >= 0 && x < cw && y < ch && data[(y * cw + x) * 4 + 3] > 128
   const edgePts = []
   const fillPts = []
   let minX = cw, maxX = 0, minY = ch, maxY = 0
 
+  // Inked pixels that touch a gap within 3px form the contour; the rest is body.
+  const R = 3
   for (let py = 0; py < ch; py += 2) {
     for (let px = 0; px < cw; px += 2) {
-      const alpha = data[(py * cw + px) * 4 + 3]
-      if (alpha > 140) {
-        edgePts.push(px, py)
-        if (px < minX) minX = px
-        if (px > maxX) maxX = px
-        if (py < minY) minY = py
-        if (py > maxY) maxY = py
-      } else if (alpha > 35) {
-        fillPts.push(px, py)
-        if (px < minX) minX = px
-        if (px > maxX) maxX = px
-        if (py < minY) minY = py
-        if (py > maxY) maxY = py
-      }
+      if (!inside(px, py)) continue
+      const edge = !inside(px - R, py) || !inside(px + R, py) || !inside(px, py - R) || !inside(px, py + R)
+      ;(edge ? edgePts : fillPts).push(px, py)
+      if (px < minX) minX = px
+      if (px > maxX) maxX = px
+      if (py < minY) minY = py
+      if (py > maxY) maxY = py
     }
   }
 
@@ -126,32 +116,32 @@ export function snuOfficialEmblemShape(count, size = 9.4, { depth = 0.18, y = 0.
 
   const out = new Float32Array(count * 3)
 
-  // 78% of particles trace the razor-sharp contours and emblem symbols
-  const edgeCount = Math.floor(count * 0.78)
+  // Half the particles trace the contours so every symbol reads clearly
+  const edgeCount = Math.floor(count * 0.6)
   const edgeTotal = edgePts.length / 2
 
   for (let i = 0; i < edgeCount; i++) {
     const idx = Math.floor(Math.random() * edgeTotal) * 2
-    const px = (edgePts[idx] - cx + rand(-0.4, 0.4)) * scale
-    const py = -(edgePts[idx + 1] - cy + rand(-0.4, 0.4)) * scale + y
+    const px = (edgePts[idx] - cx + rand(-0.6, 0.6)) * scale
+    const py = -(edgePts[idx + 1] - cy + rand(-0.6, 0.6)) * scale + y
     out[i * 3] = px
     out[i * 3 + 1] = py
     out[i * 3 + 2] = rand(-depth * 0.4, depth * 0.4)
   }
 
-  // 16% of particles provide subtle luminous body interior fill
-  const fillCount = Math.floor(count * 0.16)
+  // ...and most of the rest fill the inked body evenly
+  const fillCount = Math.floor(count * 0.35)
   const fillTotal = fillPts.length / 2
   for (let i = edgeCount; i < edgeCount + fillCount; i++) {
     const idx = Math.floor(Math.random() * fillTotal) * 2
-    const px = (fillPts[idx] - cx + rand(-0.6, 0.6)) * scale
-    const py = -(fillPts[idx + 1] - cy + rand(-0.6, 0.6)) * scale + y
+    const px = (fillPts[idx] - cx + rand(-1, 1)) * scale
+    const py = -(fillPts[idx + 1] - cy + rand(-1, 1)) * scale + y
     out[i * 3] = px
     out[i * 3 + 1] = py
     out[i * 3 + 2] = rand(-depth * 0.7, depth * 0.7)
   }
 
-  // 6% of particles form a delicate cosmic dust haze around the emblem
+  // The remaining 5% form a faint dust haze around the emblem
   for (let i = edgeCount + fillCount; i < count; i++) {
     const a = Math.random() * Math.PI * 2
     const r = (size * 0.45) + Math.pow(Math.random(), 2) * (size * 0.3)

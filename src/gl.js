@@ -136,7 +136,7 @@ const particleVertex = /* glsl */ `
     gl_Position = projectionMatrix * mv;
 
     // Finer point size for the emblem so contours and text don't blend into blobs
-    float pointScale = mix(1.0, 0.84, isEmblem);
+    float pointScale = mix(1.0, 0.72, isEmblem);
     gl_PointSize = uSize * aSize * uPixelRatio * pointScale * (1.0 + push * 0.6) / -mv.z;
 
     vColor = mix(shapeColor(i0, a), shapeColor(i1, b), t) * (1.0 + push * 0.5);
@@ -236,10 +236,10 @@ export class Stage {
     const n = this.count
     const geo = new THREE.BufferGeometry()
     this.globeR = mobile ? 2.1 : 3.1
-    this.emblemSize = mobile ? 5.8 : 8.8
+    this.emblemSize = mobile ? 4.6 : 8.8
     const serif = '900 260px "Noto Serif KR", serif'
     geo.setAttribute('position', new THREE.BufferAttribute(textShape(n, 'SNU', { width: mobile ? 4.6 : 10, font: serif, y: mobile ? 1.8 : 1.4 }), 3))
-    geo.setAttribute('p1', new THREE.BufferAttribute(snuOfficialEmblemShape(n, this.emblemSize), 3))
+    geo.setAttribute('p1', new THREE.BufferAttribute(snuOfficialEmblemShape(n, this.emblemSize, { y: mobile ? -2.6 : 0.05 }), 3))
     geo.setAttribute('p2', new THREE.BufferAttribute(terrainShape(n), 3))
     geo.setAttribute('p3', new THREE.BufferAttribute(ringShape(n), 3))
     geo.setAttribute('p4', new THREE.BufferAttribute(textShape(n, '80', { width: mobile ? 3.8 : 5.2, font: serif, depth: 0.6, y: 2.4 }), 3))
