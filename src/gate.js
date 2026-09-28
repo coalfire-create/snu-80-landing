@@ -1,433 +1,262 @@
-// Cinematic interactive canvas: SNU Signature '샤' Gate with students walking in and stars streaming into the portal.
+// The SNU '샤' gate drawn in starlight particles, matching the emblem above.
+// Scrolling walks the camera up the approach road and through the gate:
+// the gate swells, the portal brightens, and the frame floods with light.
+
+// Gate geometry in world units (x right, y down; ground at y = 45).
+const GATE = [
+  // ㅅ — left leg
+  [[-18, -145], [0, -170], [8, -140], [-75, 45], [-115, 45]],
+  // ㅅ — right leg
+  [[0, -170], [18, -145], [115, 45], [75, 45], [0, -135]],
+  // ㄱ
+  [[-195, -50], [-75, -50], [-75, -28], [-165, -28], [-165, 45], [-195, 45]],
+  // ㄷ
+  [[75, -20], [175, -20], [175, 0], [105, 0], [105, 25], [185, 25], [185, 45], [75, 45]],
+]
+const GROUND = 45
+const PORTAL = { x: 0, y: -10 }
+const GATE_Z = 1000
+const STAR_FAR = 4200
+
+const COLORS = {
+  white: [240, 245, 255],
+  ice: [170, 210, 255],
+  blue: [90, 150, 255],
+  gold: [255, 214, 120],
+}
+
+function rand(a, b) {
+  return a + Math.random() * (b - a)
+}
+
+// Soft round sprite so thousands of points can be drawn with drawImage.
+function makeSprite([r, g, b]) {
+  const c = document.createElement('canvas')
+  c.width = c.height = 32
+  const ctx = c.getContext('2d')
+  const grad = ctx.createRadialGradient(16, 16, 0, 16, 16, 16)
+  grad.addColorStop(0, `rgba(${r},${g},${b},1)`)
+  grad.addColorStop(0.25, `rgba(${r},${g},${b},0.55)`)
+  grad.addColorStop(1, `rgba(${r},${g},${b},0)`)
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, 32, 32)
+  return c
+}
+
+// Rasterize the gate and return contour-heavy sample points in world units.
+function sampleGate(count) {
+  const S = 2 // raster pixels per world unit
+  const ox = 200
+  const oy = 175
+  const c = document.createElement('canvas')
+  c.width = 400 * S
+  c.height = 225 * S
+  const ctx = c.getContext('2d', { willReadFrequently: true })
+  ctx.fillStyle = '#fff'
+  for (const poly of GATE) {
+    ctx.beginPath()
+    poly.forEach(([x, y], i) => (i ? ctx.lineTo : ctx.moveTo).call(ctx, (x + ox) * S, (y + oy) * S))
+    ctx.closePath()
+    ctx.fill()
+  }
+  const data = ctx.getImageData(0, 0, c.width, c.height).data
+  const inside = (x, y) => x >= 0 && y >= 0 && x < c.width && y < c.height && data[(y * c.width + x) * 4 + 3] > 128
+  const edge = []
+  const body = []
+  for (let y = 0; y < c.height; y += 2) {
+    for (let x = 0; x < c.width; x += 2) {
+      if (!inside(x, y)) continue
+      const e = !inside(x - 3, y) || !inside(x + 3, y) || !inside(x, y - 3) || !inside(x, y + 3)
+      ;(e ? edge : body).push([x / S - ox, y / S - oy])
+    }
+  }
+  const pts = []
+  for (let i = 0; i < count; i++) {
+    const src = i < count * 0.62 ? edge : body
+    const [x, y] = src[Math.floor(Math.random() * src.length)]
+    pts.push({
+      x: x + rand(-0.6, 0.6),
+      y: y + rand(-0.6, 0.6),
+      z: GATE_Z + rand(-6, 6),
+      color: Math.random() < 0.18 ? 'gold' : Math.random() < 0.5 ? 'white' : 'ice',
+      phase: Math.random() * Math.PI * 2,
+      size: 0.8 + Math.pow(Math.random(), 3) * 1.6,
+    })
+  }
+  return pts
+}
 
 export class GateExperience {
   constructor(canvas) {
     this.canvas = canvas
     this.ctx = canvas.getContext('2d')
-    this.stars = []
-    this.starCount = 280
-    this.mouse = { x: -1000, y: -1000, active: false }
-    this.time = 0
+    this.mobile = window.matchMedia('(max-width: 760px)').matches
+    this.progress = 0
     this.scrollSpeed = 1
-    this.animId = null
+    this.time = 0
+    this.cam = 0
+    this.mouse = { x: 0, y: 0 }
+    this.sprites = Object.fromEntries(Object.entries(COLORS).map(([k, v]) => [k, makeSprite(v)]))
+
+    this.gate = sampleGate(this.mobile ? 1800 : 3200)
+    this.stars = Array.from({ length: this.mobile ? 160 : 280 }, () => this.#star(true))
+    this.road = []
+    for (let z = 40; z < GATE_Z; z += 26) {
+      for (const x of [-60, -30, 0, 30, 60]) this.road.push({ x, z })
+    }
 
     this.resize()
-    this.initStars()
-    this.bindEvents()
-    this.loop = this.loop.bind(this)
-    this.loop()
+    window.addEventListener('resize', () => this.resize())
+    window.addEventListener('pointermove', (e) => {
+      this.mouse.x = (e.clientX / innerWidth) * 2 - 1
+      this.mouse.y = (e.clientY / innerHeight) * 2 - 1
+    })
+
+    // Only animate while on screen.
+    this.visible = false
+    new IntersectionObserver(([entry]) => {
+      this.visible = entry.isIntersecting
+      if (this.visible) this.#start()
+    }).observe(canvas)
+  }
+
+  #star(scatter) {
+    // Stars pour out of the portal toward the viewer from far beyond the gate.
+    const a = Math.random() * Math.PI * 2
+    const r = Math.pow(Math.random(), 0.6) * 520
+    return {
+      x: PORTAL.x + Math.cos(a) * r,
+      y: PORTAL.y + Math.sin(a) * r * 0.7,
+      z: scatter ? rand(this.cam + 60, STAR_FAR) : rand(GATE_Z + 200, STAR_FAR),
+      speed: rand(6, 14),
+      color: ['white', 'ice', 'blue', 'gold', 'white'][Math.floor(Math.random() * 5)],
+      size: rand(0.8, 2.2),
+    }
   }
 
   resize() {
-    const rect = this.canvas.parentElement.getBoundingClientRect()
-    this.width = rect.width || window.innerWidth
-    this.height = Math.min(window.innerHeight * 0.75, 620)
-    const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    this.canvas.width = this.width * dpr
-    this.canvas.height = this.height * dpr
-    this.canvas.style.width = `${this.width}px`
-    this.canvas.style.height = `${this.height}px`
-    this.ctx.scale(dpr, dpr)
-
-    // Gate center position
-    this.gateX = this.width * 0.5
-    this.gateY = this.height * 0.52
-    this.gateScale = Math.min(this.width / 950, 1)
+    const rect = this.canvas.getBoundingClientRect()
+    this.width = rect.width || innerWidth
+    this.height = rect.height || innerHeight
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5)
+    this.canvas.width = Math.round(this.width * dpr)
+    this.canvas.height = Math.round(this.height * dpr)
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    // At the start of the walk the gate spans about 45% of the width.
+    this.focal = Math.min((this.width * 0.45) / 380, (this.height * 0.5) / 215) * GATE_Z
   }
 
-  initStars() {
-    this.stars = []
-    for (let i = 0; i < this.starCount; i++) {
-      this.stars.push(this.createStar(true))
-    }
-  }
-
-  createStar(scatter = false) {
-    const angle = Math.random() * Math.PI * 2
-    // Spawn from outer regions
-    const dist = scatter
-      ? 120 + Math.random() * (Math.max(this.width, this.height) * 0.7)
-      : Math.max(this.width, this.height) * (0.45 + Math.random() * 0.35)
-
-    const x = this.gateX + Math.cos(angle) * dist
-    const y = this.gateY + Math.sin(angle) * dist * 0.7 - Math.random() * 80
-
-    // Hue: Platinum White, SNU Cyan Blue, Warm Gold
-    const colors = [
-      'rgba(240, 245, 255, ',
-      'rgba(180, 220, 255, ',
-      'rgba(100, 180, 255, ',
-      'rgba(255, 225, 140, ',
-      'rgba(255, 255, 255, ',
-    ]
-    const color = colors[Math.floor(Math.random() * colors.length)]
-
+  #project(x, y, z) {
+    const d = z - this.cam
+    if (d < 1) return null
+    const k = this.focal / d
+    // Camera eye sits a little above the road; the horizon is at 45% height.
     return {
-      x,
-      y,
-      prevX: x,
-      prevY: y,
-      trail: [],
-      maxTrail: 4 + Math.floor(Math.random() * 6),
-      speed: 0.8 + Math.random() * 1.6,
-      angle,
-      color,
-      size: 1.2 + Math.random() * 2.2,
-      spin: (Math.random() - 0.5) * 0.04,
-      life: 0,
-      maxLife: 200 + Math.random() * 300,
-      glow: Math.random() > 0.4,
+      x: this.width / 2 + (x - this.mouse.x * 30) * k,
+      y: this.height * 0.45 + (y - 10 + this.mouse.y * 12) * k,
+      k,
     }
   }
 
-  bindEvents() {
-    window.addEventListener('resize', () => {
-      this.resize()
-    })
-
-    const onMove = (e) => {
-      const rect = this.canvas.getBoundingClientRect()
-      this.mouse.x = e.clientX - rect.left
-      this.mouse.y = e.clientY - rect.top
-      this.mouse.active = true
-    }
-
-    this.canvas.addEventListener('mousemove', onMove)
-    this.canvas.addEventListener('mouseleave', () => {
-      this.mouse.active = false
-    })
-  }
-
-  update() {
-    this.time += 0.02
-    const gx = this.gateX
-    const gy = this.gateY
-
-    for (let i = 0; i < this.stars.length; i++) {
-      const s = this.stars[i]
-      s.life++
-
-      // Gravitational attraction toward the Gate portal center
-      const dx = gx - s.x
-      const dy = gy - s.y
-      const dist = Math.sqrt(dx * dx + dy * dy)
-
-      // Store history for smooth glowing trail
-      s.trail.push({ x: s.x, y: s.y })
-      if (s.trail.length > s.maxTrail) s.trail.shift()
-
-      // Spiral vortex force toward the center
-      const pull = (0.012 + (180 / Math.max(dist, 40)) * 0.008) * s.speed * this.scrollSpeed
-      const tangentX = -dy * s.spin
-      const tangentY = dx * s.spin
-
-      s.x += dx * pull + tangentX
-      s.y += dy * pull + tangentY
-
-      // Mouse influence
-      if (this.mouse.active) {
-        const mdx = this.mouse.x - s.x
-        const mdy = this.mouse.y - s.y
-        const mdist = Math.sqrt(mdx * mdx + mdy * mdy)
-        if (mdist < 180) {
-          const mForce = (1 - mdist / 180) * 1.5
-          s.x += (mdx / mdist) * mForce * 2
-          s.y += (mdy / mdist) * mForce * 2
-        }
+  #start() {
+    if (this.running) return
+    this.running = true
+    let last = performance.now()
+    const tick = (now) => {
+      if (!this.visible) {
+        this.running = false
+        return
       }
-
-      // Reached the gate portal core -> Absorbed into light and respawn
-      if (dist < 22 || s.life > s.maxLife) {
-        this.stars[i] = this.createStar(false)
-      }
+      const dt = Math.min((now - last) / 1000, 0.05)
+      last = now
+      this.#frame(dt)
+      requestAnimationFrame(tick)
     }
+    requestAnimationFrame(tick)
   }
 
-  drawGate() {
+  #frame(dt) {
     const ctx = this.ctx
-    const cx = this.gateX
-    const cy = this.gateY
-    const s = this.gateScale
+    const p = this.progress
+    this.time += dt
+    // Ease the walk so it settles when scrolling stops.
+    const targetCam = Math.pow(p, 1.6) * (GATE_Z - 30)
+    this.cam += (targetCam - this.cam) * Math.min(1, dt * 4)
+    const approach = this.cam / GATE_Z
 
-    ctx.save()
-    ctx.translate(cx, cy)
-    ctx.scale(s, s)
+    ctx.globalCompositeOperation = 'source-over'
+    ctx.clearRect(0, 0, this.width, this.height)
+    ctx.globalCompositeOperation = 'lighter'
 
-    // 1. Portal Glow (진리의 빛 코어)
-    const portalPulse = 0.85 + Math.sin(this.time * 2.5) * 0.15
-    const glowGrad = ctx.createRadialGradient(0, 40, 5, 0, 40, 160 * portalPulse)
-    glowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)')
-    glowGrad.addColorStop(0.2, 'rgba(120, 185, 255, 0.75)')
-    glowGrad.addColorStop(0.5, 'rgba(40, 95, 255, 0.35)')
-    glowGrad.addColorStop(0.8, 'rgba(232, 184, 90, 0.12)')
-    glowGrad.addColorStop(1, 'rgba(3, 4, 13, 0)')
-
-    ctx.fillStyle = glowGrad
-    ctx.beginPath()
-    ctx.arc(0, 40, 160 * portalPulse, 0, Math.PI * 2)
-    ctx.fill()
-
-    // 2. Light beam rays emerging from the gate into the future
-    ctx.save()
-    ctx.globalCompositeOperation = 'screen'
-    for (let r = 0; r < 5; r++) {
-      const rayAngle = -Math.PI / 2 + (r - 2) * 0.35 + Math.sin(this.time + r) * 0.05
-      ctx.beginPath()
-      ctx.moveTo(0, 40)
-      ctx.lineTo(Math.cos(rayAngle - 0.08) * 380, Math.sin(rayAngle - 0.08) * 380 + 40)
-      ctx.lineTo(Math.cos(rayAngle + 0.08) * 380, Math.sin(rayAngle + 0.08) * 380 + 40)
-      ctx.closePath()
-      const rayGrad = ctx.createRadialGradient(0, 40, 10, 0, 40, 380)
-      rayGrad.addColorStop(0, 'rgba(200, 230, 255, 0.28)')
-      rayGrad.addColorStop(0.6, 'rgba(60, 120, 255, 0.08)')
-      rayGrad.addColorStop(1, 'rgba(0, 0, 0, 0)')
-      ctx.fillStyle = rayGrad
-      ctx.fill()
-    }
-    ctx.restore()
-
-    // 3. Ground perspective path (캠퍼스 진입로)
-    ctx.beginPath()
-    ctx.moveTo(-160, 160)
-    ctx.lineTo(160, 160)
-    ctx.lineTo(24, 45)
-    ctx.lineTo(-24, 45)
-    ctx.closePath()
-    const pathGrad = ctx.createLinearGradient(0, 160, 0, 45)
-    pathGrad.addColorStop(0, 'rgba(20, 26, 60, 0.85)')
-    pathGrad.addColorStop(1, 'rgba(180, 220, 255, 0.65)')
-    ctx.fillStyle = pathGrad
-    ctx.fill()
-
-    // Road glowing perspective grid lines
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)'
-    ctx.lineWidth = 1.5
-    for (const offset of [-80, -30, 0, 30, 80]) {
-      ctx.beginPath()
-      ctx.moveTo(offset * 1.8, 160)
-      ctx.lineTo(offset * 0.25, 45)
-      ctx.stroke()
+    // Portal glow behind the gate, strengthening as we approach.
+    const pc = this.#project(PORTAL.x, PORTAL.y, GATE_Z + 40)
+    if (pc) {
+      const pulse = 1 + Math.sin(this.time * 2.2) * 0.08
+      const r = 150 * pc.k * pulse * (1 + approach)
+      const g = ctx.createRadialGradient(pc.x, pc.y, 0, pc.x, pc.y, r)
+      g.addColorStop(0, `rgba(235, 244, 255, ${0.55 + approach * 0.4})`)
+      g.addColorStop(0.3, `rgba(110, 170, 255, ${0.28 + approach * 0.3})`)
+      g.addColorStop(1, 'rgba(20, 40, 120, 0)')
+      ctx.fillStyle = g
+      ctx.fillRect(pc.x - r, pc.y - r, r * 2, r * 2)
     }
 
-    // 4. The Iconic SNU '샤' Gate Sculpture Architecture (국립서울대학교 정문 조형물)
-    // Left 'ㄱ', Center 'ㅅ' (High Tower), Right 'ㄷ'
-    ctx.shadowColor = 'rgba(90, 150, 255, 0.6)'
-    ctx.shadowBlur = 18
-
-    // Center 'ㅅ' Triangle Tower (국립서울대의 중심 아치)
-    ctx.fillStyle = '#f0f3fa'
-    ctx.strokeStyle = '#3d5bff'
-    ctx.lineWidth = 2.5
-
-    // Left slant of 'ㅅ'
-    ctx.beginPath()
-    ctx.moveTo(-18, -145)
-    ctx.lineTo(0, -170) // Peak
-    ctx.lineTo(18, -145)
-    ctx.lineTo(8, -140)
-    ctx.lineTo(-75, 45)  // Left leg bottom
-    ctx.lineTo(-115, 45)
-    ctx.lineTo(-18, -145)
-    ctx.closePath()
-    const sGrad1 = ctx.createLinearGradient(-115, 45, 0, -170)
-    sGrad1.addColorStop(0, '#c4d3ee')
-    sGrad1.addColorStop(1, '#ffffff')
-    ctx.fillStyle = sGrad1
-    ctx.fill()
-    ctx.stroke()
-
-    // Right slant of 'ㅅ'
-    ctx.beginPath()
-    ctx.moveTo(0, -170) // Peak
-    ctx.lineTo(18, -145)
-    ctx.lineTo(115, 45) // Right leg bottom
-    ctx.lineTo(75, 45)
-    ctx.lineTo(0, -135)
-    ctx.closePath()
-    const sGrad2 = ctx.createLinearGradient(0, -170, 115, 45)
-    sGrad2.addColorStop(0, '#ffffff')
-    sGrad2.addColorStop(1, '#9db4db')
-    ctx.fillStyle = sGrad2
-    ctx.fill()
-    ctx.stroke()
-
-    // Left 'ㄱ' Canopy Beam (국립서울대의 'ㄱ')
-    ctx.beginPath()
-    ctx.moveTo(-185, -50)
-    ctx.lineTo(-75, -50)
-    ctx.lineTo(-75, -28)
-    ctx.lineTo(-165, -28)
-    ctx.lineTo(-165, 45)
-    ctx.lineTo(-195, 45)
-    ctx.lineTo(-195, -50)
-    ctx.closePath()
-    const gGrad = ctx.createLinearGradient(-195, 45, -75, -50)
-    gGrad.addColorStop(0, '#a5bcdb')
-    gGrad.addColorStop(1, '#ffffff')
-    ctx.fillStyle = gGrad
-    ctx.fill()
-    ctx.stroke()
-
-    // Right 'ㄷ' Structure (국립서울대의 'ㄷ')
-    ctx.beginPath()
-    ctx.moveTo(75, -20)
-    ctx.lineTo(175, -20)
-    ctx.lineTo(175, 0)
-    ctx.lineTo(105, 0)
-    ctx.lineTo(105, 25)
-    ctx.lineTo(185, 25)
-    ctx.lineTo(185, 45)
-    ctx.lineTo(75, 45)
-    ctx.closePath()
-    const dGrad = ctx.createLinearGradient(75, -20, 185, 45)
-    dGrad.addColorStop(0, '#ffffff')
-    dGrad.addColorStop(1, '#8ea8d6')
-    ctx.fillStyle = dGrad
-    ctx.fill()
-    ctx.stroke()
-
-    ctx.shadowBlur = 0
-
-    // 5. Students Walking Into the Gate (정문 안으로 걸어 들어가는 학생들의 실루엣)
-    this.drawStudents(ctx)
-
-    ctx.restore()
-  }
-
-  drawStudents(ctx) {
-    // Walking step oscillation
-    const walk1 = Math.sin(this.time * 5) * 4
-    const walk2 = Math.cos(this.time * 4.6) * 3.5
-    const walk3 = Math.sin(this.time * 5.2 + 1.5) * 4
-
-    // Helper: Draw a walking student silhouette with backpack & book
-    const drawStudent = (x, y, scale, legSwing, backpack = true, book = false) => {
-      ctx.save()
-      ctx.translate(x, y)
-      ctx.scale(scale, scale)
-
-      // Silhouette dark color with glowing rim light from the portal ahead
-      ctx.fillStyle = '#080c1d'
-      ctx.strokeStyle = 'rgba(180, 215, 255, 0.75)'
-      ctx.lineWidth = 1.2
-
-      // Head
-      ctx.beginPath()
-      ctx.arc(0, -52, 7.5, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.stroke()
-
-      // Neck & Torso
-      ctx.beginPath()
-      ctx.moveTo(-7, -42)
-      ctx.lineTo(7, -42)
-      ctx.lineTo(9, -18)
-      ctx.lineTo(-9, -18)
-      ctx.closePath()
-      ctx.fill()
-      ctx.stroke()
-
-      // Backpack
-      if (backpack) {
-        ctx.beginPath()
-        ctx.roundRect(-15, -40, 8, 18, 4)
-        ctx.fill()
-        ctx.stroke()
-      }
-
-      // Book in hand
-      if (book) {
-        ctx.beginPath()
-        ctx.rect(8, -24, 7, 10)
-        ctx.fillStyle = '#d4af37'
-        ctx.fill()
-        ctx.fillStyle = '#080c1d'
-      }
-
-      // Left Leg
-      ctx.beginPath()
-      ctx.moveTo(-5, -18)
-      ctx.lineTo(-5 - legSwing, 0)
-      ctx.lineWidth = 4
-      ctx.strokeStyle = '#080c1d'
-      ctx.stroke()
-
-      // Right Leg
-      ctx.beginPath()
-      ctx.moveTo(5, -18)
-      ctx.lineTo(5 + legSwing, 0)
-      ctx.stroke()
-
-      ctx.restore()
+    // Approach road: rows of dots flowing toward us.
+    const flow = (this.time * 60 * this.scrollSpeed) % 26
+    for (const d of this.road) {
+      const z = d.z - flow
+      const q = this.#project(d.x, GROUND, z)
+      if (!q) continue
+      const a = Math.min(1, (z - this.cam) / 240) * (1 - z / GATE_Z) * 0.9
+      if (a <= 0) continue
+      const s = Math.min(6, Math.max(1.5, 5 * q.k))
+      ctx.globalAlpha = a
+      ctx.drawImage(this.sprites.ice, q.x - s, q.y - s, s * 2, s * 2)
     }
 
-    // Student 1: Center-left, walking toward the gate
-    drawStudent(-45, 125, 0.72, walk1, true, false)
-
-    // Student 2: Center-right, walking with friend
-    drawStudent(35, 132, 0.78, walk2, true, true)
-
-    // Student 3: Farther in the distance near the gate portal
-    drawStudent(-10, 75, 0.42, walk3, true, false)
-
-    // Student 4: Farther right in distance
-    drawStudent(18, 68, 0.38, -walk1, false, false)
-  }
-
-  drawStars() {
-    const ctx = this.ctx
-
+    // Stars streaming out of the portal and past the viewer.
+    const step = dt * 60 * this.scrollSpeed
     for (let i = 0; i < this.stars.length; i++) {
-      const s = this.stars[i]
-
-      // Draw star trail streaming toward gate
-      if (s.trail.length > 1) {
-        ctx.beginPath()
-        ctx.moveTo(s.trail[0].x, s.trail[0].y)
-        for (let j = 1; j < s.trail.length; j++) {
-          ctx.lineTo(s.trail[j].x, s.trail[j].y)
-        }
-        ctx.lineTo(s.x, s.y)
-        ctx.strokeStyle = `${s.color}${Math.min(s.life / 20, 0.65)})`
-        ctx.lineWidth = s.size * 0.85
-        ctx.lineCap = 'round'
-        ctx.stroke()
+      const st = this.stars[i]
+      st.z -= st.speed * step * (1 + approach * 2)
+      if (st.z < this.cam + 20) {
+        this.stars[i] = this.#star(false)
+        continue
       }
-
-      // Star head glowing particle
+      const head = this.#project(st.x, st.y, st.z)
+      const tail = this.#project(st.x, st.y, st.z + st.speed * 10)
+      if (!head || !tail) continue
+      const a = Math.min(1, (STAR_FAR - st.z) / 600)
+      const [r, g, b] = COLORS[st.color]
+      ctx.globalAlpha = a
+      ctx.strokeStyle = `rgba(${r},${g},${b},0.6)`
+      ctx.lineWidth = Math.min(2.5, Math.max(0.6, st.size * head.k * 0.9))
       ctx.beginPath()
-      ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2)
-      ctx.fillStyle = `${s.color}1)`
-      ctx.fill()
-
-      if (s.glow) {
-        ctx.shadowColor = s.color.replace('rgba', 'rgb').replace(', ', ')')
-        ctx.shadowBlur = 10
-        ctx.fill()
-        ctx.shadowBlur = 0
-      }
+      ctx.moveTo(tail.x, tail.y)
+      ctx.lineTo(head.x, head.y)
+      ctx.stroke()
+      const s = Math.min(9, Math.max(1.2, st.size * head.k * 2.2))
+      ctx.drawImage(this.sprites[st.color], head.x - s, head.y - s, s * 2, s * 2)
     }
-  }
 
-  loop() {
-    this.ctx.clearRect(0, 0, this.width, this.height)
+    // The gate itself, in twinkling starlight.
+    for (const pt of this.gate) {
+      const q = this.#project(pt.x, pt.y, pt.z)
+      if (!q) continue
+      const tw = 0.7 + 0.3 * Math.sin(this.time * 2.4 + pt.phase)
+      const s = Math.min(16, Math.max(1, pt.size * q.k * 2.4))
+      ctx.globalAlpha = tw
+      ctx.drawImage(this.sprites[pt.color], q.x - s, q.y - s, s * 2, s * 2)
+    }
 
-    // Background cosmic gradient
-    const bgGrad = this.ctx.createLinearGradient(0, 0, 0, this.height)
-    bgGrad.addColorStop(0, 'rgba(4, 6, 18, 0.75)')
-    bgGrad.addColorStop(0.6, 'rgba(8, 14, 38, 0.88)')
-    bgGrad.addColorStop(1, 'rgba(4, 6, 18, 0.95)')
-    this.ctx.fillStyle = bgGrad
-    this.ctx.fillRect(0, 0, this.width, this.height)
-
-    this.update()
-    this.drawStars() // Stars stream behind and around the gate
-    this.drawGate()  // Gate and students in front of the stream
-
-    this.animId = requestAnimationFrame(this.loop)
-  }
-
-  destroy() {
-    if (this.animId) cancelAnimationFrame(this.animId)
+    // Passing through: light floods the frame, then clears on the far side.
+    const flood = Math.max(0, 1 - Math.abs(p - 0.9) / 0.1)
+    if (flood > 0) {
+      ctx.globalCompositeOperation = 'source-over'
+      ctx.globalAlpha = 1
+      ctx.fillStyle = `rgba(225, 236, 255, ${flood * 0.85})`
+      ctx.fillRect(0, 0, this.width, this.height)
+    }
+    ctx.globalAlpha = 1
   }
 }

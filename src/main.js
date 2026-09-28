@@ -434,6 +434,17 @@ async function boot() {
         gateExp.scrollSpeed = 1 + Math.min(vel * 0.0006, 2.5)
       },
     })
+    // The walk up to and through the gate follows the pinned stretch.
+    const gateBadge = document.querySelector('.gate-badge')
+    ScrollTrigger.create({
+      trigger: '#gateStage',
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: (self) => {
+        gateExp.progress = self.progress
+        gateBadge.style.opacity = 1 - Math.min(1, Math.max(0, (self.progress - 0.6) / 0.15))
+      },
+    })
   }
 
   initCursor()
