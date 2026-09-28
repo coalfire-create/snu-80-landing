@@ -51,40 +51,45 @@ export function textShape(count, text, { width = 11, font = '900 220px "Noto Ser
   return out
 }
 
-import emblemData from './snu_emblem_data.json'
-
-// Seoul National University Official Emblem (정장): Laurel wreath, crossed pen & torch, open book, and '샤' gate.
-// Directly sampled from the authentic SNU official seal.
-export function snuOfficialEmblemShape(count, size = 8.6, { depth = 0.35, y = 0.1 } = {}) {
-  const { width, height, points } = emblemData
-  const cx = width / 2
-  const cy = height / 2
-  const scale = size / Math.max(width, height)
-
+// Celestial Cosmic Aura that frames the official SNU seal medallion in 3D space.
+// Creates a majestic nebula of starlight, golden coronal rays, and celestial orbital rings.
+export function snuOfficialEmblemShape(count, size = 8.5, { depth = 0.4, y = 0.0 } = {}) {
   const out = new Float32Array(count * 3)
-  const pLen = points.length
-  const mainCount = Math.floor(count * 0.88)
 
-  for (let i = 0; i < mainCount; i++) {
-    const pt = points[Math.floor(Math.random() * pLen)]
-    // Map to 3D coordinates (Y inverted for 3D world)
-    const px = (pt[0] - cx + rand(-0.35, 0.35)) * scale
-    const py = -(pt[1] - cy + rand(-0.35, 0.35)) * scale + y
-    const dist = Math.sqrt(px * px + py * py)
-    const z = (1 - Math.min(dist / (size * 0.5), 1)) * depth + rand(-0.06, 0.06)
-
+  // 1. Concentric orbital celestial rings around the emblem (40% of particles)
+  const ringCount = Math.floor(count * 0.42)
+  for (let i = 0; i < ringCount; i++) {
+    const ringIdx = i % 3
+    const angle = Math.random() * Math.PI * 2
+    // Radii outside the central medallion (medallion radius ~ 2.6)
+    let r = 2.9 + ringIdx * 0.75 + Math.random() * 0.35
+    const tilt = (ringIdx - 1) * 0.18
+    const px = Math.cos(angle) * r
+    const pz = Math.sin(angle) * r
     out[i * 3] = px
-    out[i * 3 + 1] = py
-    out[i * 3 + 2] = z
+    out[i * 3 + 1] = pz * Math.sin(tilt) + y + rand(-0.06, 0.06)
+    out[i * 3 + 2] = pz * Math.cos(tilt) * 0.4 + rand(-0.15, 0.15)
   }
 
-  // Soft radiant cosmic starlight halo around the majestic emblem
-  for (let i = mainCount; i < count; i++) {
+  // 2. Majestic Laurel Corona / Starlight Rays (35% of particles)
+  const coronaCount = Math.floor(count * 0.35)
+  for (let i = ringCount; i < ringCount + coronaCount; i++) {
+    const angle = Math.random() * Math.PI * 2
+    // Radiating spikes mimicking the sacred laurel crown & torch flames
+    const ray = Math.sin(angle * 14) * 0.4 + Math.cos(angle * 6) * 0.2
+    const r = 2.8 + ray + Math.random() * 1.6
+    out[i * 3] = Math.cos(angle) * r + rand(-0.05, 0.05)
+    out[i * 3 + 1] = Math.sin(angle) * r + y + rand(-0.05, 0.05)
+    out[i * 3 + 2] = rand(-depth, depth)
+  }
+
+  // 3. Ethereal background cosmic dust & stardust field (23% of particles)
+  for (let i = ringCount + coronaCount; i < count; i++) {
     const a = Math.random() * Math.PI * 2
-    const r = (size * 0.44) + Math.pow(Math.random(), 2) * (size * 0.3)
+    const r = Math.pow(Math.random(), 0.7) * 4.8
     out[i * 3] = Math.cos(a) * r
     out[i * 3 + 1] = Math.sin(a) * r + y
-    out[i * 3 + 2] = rand(-0.25, 0.25)
+    out[i * 3 + 2] = -0.6 - Math.random() * 0.8 // Placed gently behind the emblem
   }
 
   return out
