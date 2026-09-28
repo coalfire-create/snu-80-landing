@@ -506,8 +506,125 @@ main {
   backdrop-filter: blur(8px);
   background: rgba(10, 20, 60, 0.25);
 }
+.split-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 60px;
+}
+@media (max-width: 960px) {
+  .split-layout {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
 @media (min-width: 900px) {
-  .split-layout .panel { margin-right: auto; }
+  .split-layout .panel { max-width: 520px; }
+}
+
+/* ---------- majestic official emblem monument ---------- */
+.emblem-monument {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
+  flex-shrink: 0;
+  perspective: 1000px;
+}
+.emblem-monument__glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 420px;
+  height: 420px;
+  transform: translate(-50%, -60%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(61, 91, 255, 0.45) 0%, rgba(232, 184, 90, 0.3) 40%, transparent 70%);
+  filter: blur(48px);
+  pointer-events: none;
+  animation: emblemPulse 4s ease-in-out infinite alternate;
+}
+.emblem-monument__glow-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 360px;
+  height: 360px;
+  transform: translate(-50%, -60%);
+  border-radius: 50%;
+  border: 1px dashed rgba(232, 184, 90, 0.35);
+  pointer-events: none;
+  animation: emblemRingRot 30s linear infinite;
+}
+@keyframes emblemPulse {
+  0% { transform: translate(-50%, -60%) scale(0.92); opacity: 0.65; }
+  100% { transform: translate(-50%, -60%) scale(1.1); opacity: 0.95; }
+}
+@keyframes emblemRingRot {
+  0% { transform: translate(-50%, -60%) rotate(0deg); }
+  100% { transform: translate(-50%, -60%) rotate(360deg); }
+}
+.emblem-monument__frame {
+  position: relative;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: radial-gradient(circle at 35% 30%, rgba(25, 45, 115, 0.55) 0%, rgba(4, 7, 24, 0.88) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.26);
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.85),
+    inset 0 1px 3px rgba(255, 255, 255, 0.4),
+    0 0 55px rgba(61, 91, 255, 0.38),
+    inset 0 0 40px rgba(232, 184, 90, 0.12);
+  backdrop-filter: blur(20px);
+  transition: transform 0.5s var(--ease), box-shadow 0.5s var(--ease);
+}
+.emblem-monument:hover .emblem-monument__frame {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 
+    0 35px 80px rgba(0, 0, 0, 0.9),
+    inset 0 1px 4px rgba(255, 255, 255, 0.6),
+    0 0 80px rgba(61, 91, 255, 0.6),
+    inset 0 0 50px rgba(232, 184, 90, 0.2);
+}
+.emblem-monument__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: brightness(0) invert(1) drop-shadow(0 0 12px rgba(255, 235, 170, 0.95)) drop-shadow(0 0 28px rgba(61, 91, 255, 0.85));
+  transition: filter 0.5s var(--ease);
+}
+.emblem-monument:hover .emblem-monument__img {
+  filter: brightness(0) invert(1) drop-shadow(0 0 18px rgba(255, 245, 200, 1)) drop-shadow(0 0 40px rgba(61, 91, 255, 1));
+}
+.emblem-monument__meta {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.emblem-monument__motto {
+  font-size: 20px;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(232, 184, 90, 0.5);
+}
+.emblem-monument__desc {
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+@media (max-width: 760px) {
+  .emblem-monument { margin-top: 40px; }
+  .emblem-monument__frame { width: 280px; height: 280px; padding: 24px; }
+  .emblem-monument__glow { width: 320px; height: 320px; }
+  .emblem-monument__glow-ring { width: 290px; height: 290px; }
 }
 
 /* ---------- campus ---------- */

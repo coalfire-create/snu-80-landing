@@ -31,6 +31,7 @@ export const translations = {
       title: '관악에서<br />세계로.',
       desc: '서울의 한 점에서 시작된 연구가 지구 반대편의 교실과 실험실로 이어집니다. 교환학생, 공동연구, 국제 네트워크 — 서울대의 지성은 국경에서 멈추지 않습니다.',
       tags: ['국제 교환학생', '글로벌 공동연구', '해외 석학 초청', '다국적 캠퍼스'],
+      emblemDesc: '국립서울대학교 공식 정장 · 1946',
     },
     campus: {
       eyebrow: '02 — CAMPUS',
@@ -93,6 +94,7 @@ export const translations = {
       title: 'From Gwanak<br />To the World.',
       desc: 'Discoveries sparked in Gwanak ignite classrooms and laboratories across the globe. Through worldwide exchanges, groundbreaking research, and borderless networks, SNU leads without boundaries.',
       tags: ['Global Exchange', 'Joint Research', 'Eminent Scholars', 'Global Campus'],
+      emblemDesc: 'Official Seal of Seoul National University · 1946',
     },
     campus: {
       eyebrow: '02 — CAMPUS',
