@@ -51,45 +51,113 @@ export function textShape(count, text, { width = 11, font = '900 220px "Noto Ser
   return out
 }
 
-// Celestial Cosmic Aura that frames the official SNU seal medallion in 3D space.
-// Creates a majestic nebula of starlight, golden coronal rays, and celestial orbital rings.
-export function snuOfficialEmblemShape(count, size = 8.5, { depth = 0.4, y = 0.0 } = {}) {
+import snuPath from './snu_path.js'
+
+// Authentic Seoul National University Official Seal formed exclusively by starlight particles.
+// Uses Path2D and high-resolution stroke rasterization so every contour (laurel wreath, crossed pen & torch,
+// open book with VERITAS LUX MEA, and the central shield) is unmistakably clear and crisp.
+let cachedEmblemPoints = null
+
+function getEmblemPoints() {
+  if (cachedEmblemPoints) return cachedEmblemPoints
+
+  const cw = 1100
+  const ch = 1140
+  const canvas = document.createElement('canvas')
+  canvas.width = cw
+  canvas.height = ch
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+
+  // Clean black background
+  ctx.clearRect(0, 0, cw, ch)
+
+  // Map SVG viewBox (162.86 x 168.93) to canvas (cw x ch)
+  const scaleX = cw / 162.86012
+  const scaleY = ch / 168.93428
+  ctx.scale(scaleX, scaleY)
+  ctx.translate(-212.27147, 92.121406)
+  ctx.transform(1.6999673, 0, 0, 1.6999673, -205.58145, 5.3577358)
+
+  const path = new Path2D(snuPath)
+
+  // 1. Draw outer & inner stroke edges (strong contrast)
+  ctx.lineWidth = 1.8
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke(path)
+
+  // 2. Lightly fill the body for subtle interior density
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.22)'
+  ctx.fill(path)
+
+  const data = ctx.getImageData(0, 0, cw, ch).data
+  const edgePts = []
+  const fillPts = []
+  let minX = cw, maxX = 0, minY = ch, maxY = 0
+
+  for (let py = 0; py < ch; py += 2) {
+    for (let px = 0; px < cw; px += 2) {
+      const alpha = data[(py * cw + px) * 4 + 3]
+      if (alpha > 140) {
+        edgePts.push(px, py)
+        if (px < minX) minX = px
+        if (px > maxX) maxX = px
+        if (py < minY) minY = py
+        if (py > maxY) maxY = py
+      } else if (alpha > 35) {
+        fillPts.push(px, py)
+        if (px < minX) minX = px
+        if (px > maxX) maxX = px
+        if (py < minY) minY = py
+        if (py > maxY) maxY = py
+      }
+    }
+  }
+
+  cachedEmblemPoints = { edgePts, fillPts, minX, maxX, minY, maxY }
+  console.log('[SNU 3D Particle Seal] Contours generated:', edgePts.length / 2, 'Interior points:', fillPts.length / 2)
+  return cachedEmblemPoints
+}
+
+export function snuOfficialEmblemShape(count, size = 9.4, { depth = 0.18, y = 0.05 } = {}) {
+  const { edgePts, fillPts, minX, maxX, minY, maxY } = getEmblemPoints()
+  const cx = (minX + maxX) / 2
+  const cy = (minY + maxY) / 2
+  const scale = size / Math.max(maxX - minX, maxY - minY)
+
   const out = new Float32Array(count * 3)
 
-  // 1. Concentric orbital celestial rings around the emblem (40% of particles)
-  const ringCount = Math.floor(count * 0.42)
-  for (let i = 0; i < ringCount; i++) {
-    const ringIdx = i % 3
-    const angle = Math.random() * Math.PI * 2
-    // Radii outside the central medallion (medallion radius ~ 2.6)
-    let r = 2.9 + ringIdx * 0.75 + Math.random() * 0.35
-    const tilt = (ringIdx - 1) * 0.18
-    const px = Math.cos(angle) * r
-    const pz = Math.sin(angle) * r
+  // 78% of particles trace the razor-sharp contours and emblem symbols
+  const edgeCount = Math.floor(count * 0.78)
+  const edgeTotal = edgePts.length / 2
+
+  for (let i = 0; i < edgeCount; i++) {
+    const idx = Math.floor(Math.random() * edgeTotal) * 2
+    const px = (edgePts[idx] - cx + rand(-0.4, 0.4)) * scale
+    const py = -(edgePts[idx + 1] - cy + rand(-0.4, 0.4)) * scale + y
     out[i * 3] = px
-    out[i * 3 + 1] = pz * Math.sin(tilt) + y + rand(-0.06, 0.06)
-    out[i * 3 + 2] = pz * Math.cos(tilt) * 0.4 + rand(-0.15, 0.15)
+    out[i * 3 + 1] = py
+    out[i * 3 + 2] = rand(-depth * 0.4, depth * 0.4)
   }
 
-  // 2. Majestic Laurel Corona / Starlight Rays (35% of particles)
-  const coronaCount = Math.floor(count * 0.35)
-  for (let i = ringCount; i < ringCount + coronaCount; i++) {
-    const angle = Math.random() * Math.PI * 2
-    // Radiating spikes mimicking the sacred laurel crown & torch flames
-    const ray = Math.sin(angle * 14) * 0.4 + Math.cos(angle * 6) * 0.2
-    const r = 2.8 + ray + Math.random() * 1.6
-    out[i * 3] = Math.cos(angle) * r + rand(-0.05, 0.05)
-    out[i * 3 + 1] = Math.sin(angle) * r + y + rand(-0.05, 0.05)
-    out[i * 3 + 2] = rand(-depth, depth)
+  // 16% of particles provide subtle luminous body interior fill
+  const fillCount = Math.floor(count * 0.16)
+  const fillTotal = fillPts.length / 2
+  for (let i = edgeCount; i < edgeCount + fillCount; i++) {
+    const idx = Math.floor(Math.random() * fillTotal) * 2
+    const px = (fillPts[idx] - cx + rand(-0.6, 0.6)) * scale
+    const py = -(fillPts[idx + 1] - cy + rand(-0.6, 0.6)) * scale + y
+    out[i * 3] = px
+    out[i * 3 + 1] = py
+    out[i * 3 + 2] = rand(-depth * 0.7, depth * 0.7)
   }
 
-  // 3. Ethereal background cosmic dust & stardust field (23% of particles)
-  for (let i = ringCount + coronaCount; i < count; i++) {
+  // 6% of particles form a delicate cosmic dust haze around the emblem
+  for (let i = edgeCount + fillCount; i < count; i++) {
     const a = Math.random() * Math.PI * 2
-    const r = Math.pow(Math.random(), 0.7) * 4.8
+    const r = (size * 0.45) + Math.pow(Math.random(), 2) * (size * 0.3)
     out[i * 3] = Math.cos(a) * r
     out[i * 3 + 1] = Math.sin(a) * r + y
-    out[i * 3 + 2] = -0.6 - Math.random() * 0.8 // Placed gently behind the emblem
+    out[i * 3 + 2] = rand(-0.35, 0.35)
   }
 
   return out

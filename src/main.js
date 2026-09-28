@@ -226,33 +226,6 @@ function initMagnetic() {
   })
 }
 
-function initEmblemTilt() {
-  const monument = document.getElementById('emblemMonument')
-  if (!monument) return
-  const frame = monument.querySelector('.emblem-monument__frame')
-  if (!frame) return
-
-  monument.addEventListener('pointermove', (e) => {
-    const r = monument.getBoundingClientRect()
-    const x = (e.clientX - r.left) / r.width - 0.5
-    const y = (e.clientY - r.top) / r.height - 0.5
-    gsap.to(frame, {
-      rotateY: x * 24,
-      rotateX: -y * 24,
-      duration: 0.4,
-      ease: 'power2.out',
-      transformPerspective: 900,
-    })
-  })
-  monument.addEventListener('pointerleave', () => {
-    gsap.to(frame, {
-      rotateY: 0,
-      rotateX: 0,
-      duration: 1,
-      ease: 'elastic.out(1, 0.4)',
-    })
-  })
-}
 
 /* ---------- scroll → 3D state ---------- */
 
@@ -465,7 +438,6 @@ async function boot() {
 
   initCursor()
   initMagnetic()
-  initEmblemTilt()
 }
 
 boot()

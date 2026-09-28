@@ -68,20 +68,18 @@ const particleVertex = /* glsl */ `
   vec3 shapeColor(float i, vec3 p){
     if (i < 0.5) return mix(vec3(0.85, 0.9, 1.0), vec3(0.35, 0.55, 1.0), aRand);
     if (i < 1.5) {
-      // Authentic SNU Official Seal: Classic Deep Blue (#0F0F70) & Brilliant Gold/Platinum Radiance
-      vec3 snuBlue = vec3(0.08, 0.32, 0.98);
-      vec3 sapphire = vec3(0.38, 0.72, 1.0);
-      vec3 baseEmblem = mix(snuBlue, sapphire, aRand * 0.7);
+      // Authentic SNU Official Emblem: Brilliant Starlight Gold & Classic Seoul National University Blue
+      vec3 snuBlue = vec3(0.06, 0.35, 0.96);
+      vec3 sapphire = vec3(0.25, 0.65, 1.0);
+      vec3 radiantGold = vec3(1.0, 0.84, 0.38) * 2.4;
+      vec3 superNova = vec3(1.0, 0.98, 0.95) * 2.2;
 
-      vec3 radiantGold = vec3(1.0, 0.86, 0.40) * 2.2;
-      vec3 platinum = vec3(0.96, 0.98, 1.0) * 1.8;
+      // Sparkling diamond twinkle along the contours
+      float twinkle = sin(uTime * 2.2 + aRand * 6.28) * 0.5 + 0.5;
+      float isGold = smoothstep(0.32, 0.78, aRand * 0.7 + twinkle * 0.3);
 
-      float shimmer = sin(uTime * 1.4 + p1.y * 1.4) * 0.5 + 0.5;
-      float isGold = smoothstep(0.48, 0.92, aRand * 0.6 + shimmer * 0.35);
-
-      vec3 core = mix(baseEmblem, radiantGold, isGold);
-      float halo = smoothstep(3.2, 4.6, length(p1.xy));
-      return mix(core, platinum, halo * 0.45);
+      vec3 emblemColor = mix(radiantGold, superNova, isGold * 0.45);
+      return mix(snuBlue, emblemColor, smoothstep(0.15, 0.65, aRand + twinkle * 0.2));
     }
     if (i < 2.5) {
       float h = terrainH(p2) / 4.2;
@@ -118,7 +116,10 @@ const particleVertex = /* glsl */ `
       sin(pos.z * 1.7 + uTime * 1.3 + aRand * 4.7)
     );
     pos += swirl * mid * 1.6;
-    pos += swirl * 0.025; // idle shimmer
+
+    // Constellation stability: Keep SNU emblem steady and sharp like true stars in the night sky
+    float isEmblem = 1.0 - smoothstep(0.0, 0.7, abs(m - 1.0));
+    pos += swirl * mix(0.025, 0.006, isEmblem);
 
     // Intro: particles collapse in from a wide cloud.
     vec3 scatter = normalize(swirl + 0.001) * (8.0 + aRand * 14.0);
@@ -133,7 +134,10 @@ const particleVertex = /* glsl */ `
 
     vec4 mv = modelViewMatrix * vec4(pos, 1.0);
     gl_Position = projectionMatrix * mv;
-    gl_PointSize = uSize * aSize * uPixelRatio * (1.0 + push * 0.6) / -mv.z;
+
+    // Finer point size for the emblem so contours and text don't blend into blobs
+    float pointScale = mix(1.0, 0.84, isEmblem);
+    gl_PointSize = uSize * aSize * uPixelRatio * pointScale * (1.0 + push * 0.6) / -mv.z;
 
     vColor = mix(shapeColor(i0, a), shapeColor(i1, b), t) * (1.0 + push * 0.5);
     vAlpha = mix(shapeAlpha(i0), shapeAlpha(i1), t) * uIntro;
