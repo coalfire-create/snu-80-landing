@@ -42,6 +42,11 @@ export const translations = {
         { label: '단과대학 · 학부' },
       ],
     },
+    gate: {
+      tag: 'SIGNATURE LANDMARK · 관악의 문',
+      title: '진리의 문으로 나아가는 발걸음',
+      desc: '80년 동안 수많은 지성의 별들이 이 문을 지나 대한민국과 인류의 내일을 밝혔습니다.',
+    },
     colleges: {
       eyebrow: '03 — COLLEGES',
       title: '당신의 질문은<br />어디에 있나요?',
@@ -98,6 +103,11 @@ export const translations = {
         { label: 'Gwanak Relocation' },
         { label: 'Colleges & Schools' },
       ],
+    },
+    gate: {
+      tag: 'SIGNATURE LANDMARK · GATE OF GWANAK',
+      title: 'Stepping Through the Gate of Veritas',
+      desc: 'For 80 years, countless brilliant minds have entered through this gate to illuminate Korea and the world.',
     },
     colleges: {
       eyebrow: '03 — COLLEGES',

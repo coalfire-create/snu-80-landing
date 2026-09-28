@@ -3,7 +3,7 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js'
-import { textShape, globeShape, terrainShape, ringShape } from './shapes.js'
+import { textShape, globeShape, terrainShape, ringShape, snuEmblemShape } from './shapes.js'
 
 const NOISE = /* glsl */ `
   float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -58,7 +58,7 @@ const particleVertex = /* glsl */ `
 
   vec3 shapePos(float i){
     if (i < 0.5) return position;
-    if (i < 1.5) return rotX(0.25) * rotY(uTime * 0.18) * p1 + vec3(uGlobeX, 0.0, 0.0);
+    if (i < 1.5) return rotX(0.1) * rotY(uTime * 0.2) * p1 + vec3(uGlobeX, 0.0, 0.0);
     if (i < 2.5) return vec3(p2.x, -3.0 + terrainH(p2), p2.z);
     if (i < 3.5) return rotX(0.42) * rotY(uRingRot + uTime * 0.05) * p3;
     return p4;
@@ -67,10 +67,12 @@ const particleVertex = /* glsl */ `
   vec3 shapeColor(float i, vec3 p){
     if (i < 0.5) return mix(vec3(0.85, 0.9, 1.0), vec3(0.35, 0.55, 1.0), aRand);
     if (i < 1.5) {
-      float r = length(p1);
-      vec3 c = mix(vec3(0.2, 0.4, 1.0), vec3(0.55, 0.9, 1.0), aRand);
-      if (r > uGlobeR * 1.005 && r < uGlobeR * 1.27) c = vec3(1.0, 0.72, 0.28) * 2.2; // Seoul
-      return c;
+      // SNU Official Emblem Color: Royal SNU Blue with Radiant Gold/Platinum highlights
+      vec3 royalBlue = mix(vec3(0.12, 0.32, 0.95), vec3(0.35, 0.65, 1.0), aRand);
+      vec3 goldAccent = vec3(1.0, 0.84, 0.36) * 1.9;
+      float shimmer = sin(uTime * 1.8 + p1.x * 1.5 + p1.y * 1.5) * 0.5 + 0.5;
+      float isGold = smoothstep(0.55, 0.98, aRand * 0.65 + shimmer * 0.45);
+      return mix(royalBlue, goldAccent, isGold);
     }
     if (i < 2.5) {
       float h = terrainH(p2) / 4.2;
@@ -221,9 +223,10 @@ export class Stage {
     const n = this.count
     const geo = new THREE.BufferGeometry()
     this.globeR = mobile ? 2.1 : 3.1
+    this.emblemSize = mobile ? 4.2 : 5.8
     const serif = '900 260px "Noto Serif KR", serif'
     geo.setAttribute('position', new THREE.BufferAttribute(textShape(n, 'SNU', { width: mobile ? 4.6 : 10, font: serif, y: mobile ? 1.8 : 1.4 }), 3))
-    geo.setAttribute('p1', new THREE.BufferAttribute(globeShape(n, this.globeR), 3))
+    geo.setAttribute('p1', new THREE.BufferAttribute(snuEmblemShape(n, this.emblemSize), 3))
     geo.setAttribute('p2', new THREE.BufferAttribute(terrainShape(n), 3))
     geo.setAttribute('p3', new THREE.BufferAttribute(ringShape(n), 3))
     geo.setAttribute('p4', new THREE.BufferAttribute(textShape(n, '80', { width: mobile ? 3.8 : 5.2, font: serif, depth: 0.6, y: 2.4 }), 3))

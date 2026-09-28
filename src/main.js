@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
 import { Stage } from './gl.js'
 import { translations } from './i18n.js'
+import { GateExperience } from './gate.js'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -418,6 +419,21 @@ async function boot() {
 
     stage.update()
   })
+
+  /* Sha Gate & Starlight Influx Experience */
+  const gateCanvas = document.getElementById('gateCanvas')
+  if (gateCanvas) {
+    const gateExp = new GateExperience(gateCanvas)
+    ScrollTrigger.create({
+      trigger: '#gateStage',
+      start: 'top bottom',
+      end: 'bottom top',
+      onUpdate: (self) => {
+        const vel = Math.abs(self.getVelocity())
+        gateExp.scrollSpeed = 1 + Math.min(vel * 0.0006, 2.5)
+      },
+    })
+  }
 
   initCursor()
   initMagnetic()
