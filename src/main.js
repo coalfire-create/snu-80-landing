@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
 import { Stage } from './gl.js'
+import { translations } from './i18n.js'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -26,8 +27,14 @@ const COLLEGES = [
 ]
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+let currentLang = localStorage.getItem('snu_lang') || 'ko'
+if (!translations[currentLang]) currentLang = 'ko'
 
 /* ---------- helpers ---------- */
+
+function getNestedTranslation(obj, path) {
+  return path.split('.').reduce((prev, curr) => (prev ? prev[curr] : undefined), obj)
+}
 
 function splitChars(el) {
   const text = el.textContent
@@ -66,6 +73,95 @@ function splitWords(el) {
   el.innerHTML = words.map((w) => `<span class="word">${w}</span>`).join(' ')
 }
 
+/* ---------- i18n switcher ---------- */
+
+function updateContentForLanguage(lang) {
+  const data = translations[lang] || translations.ko
+  document.documentElement.lang = data.htmlLang
+  document.title = data.pageTitle
+
+  const metaDesc = document.querySelector('meta[name="description"]')
+  if (metaDesc) metaDesc.setAttribute('content', data.pageDesc)
+
+  // Text nodes
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.dataset.i18n
+    const val = getNestedTranslation(data, key)
+    if (typeof val === 'string') {
+      el.textContent = val
+    }
+  })
+
+  // HTML nodes (title with <br>, <em class="latin">)
+  document.querySelectorAll('[data-i18n-html]').forEach((el) => {
+    const key = el.dataset.i18nHtml
+    const val = getNestedTranslation(data, key)
+    if (typeof val === 'string') {
+      el.innerHTML = val
+    }
+  })
+
+  // Tags in Global section
+  const tagsEl = document.getElementById('globalTags')
+  if (tagsEl && data.global && data.global.tags) {
+    tagsEl.innerHTML = data.global.tags.map((t) => `<li>${t}</li>`).join('')
+  }
+
+  // Marquee track in Manifesto
+  const marquee = document.getElementById('marqueeTrack')
+  if (marquee && data.manifesto && data.manifesto.marquee) {
+    marquee.innerHTML = `<span>${data.manifesto.marquee}</span><span>${data.manifesto.marquee}</span>`
+  }
+
+  // Language switcher active states
+  document.querySelectorAll('.lang-btn').forEach((btn) => {
+    const isActive = btn.dataset.lang === lang
+    btn.classList.toggle('is-active', isActive)
+    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false')
+  })
+}
+
+function reapplyTypographySplits(isIntroFinished = false) {
+  // Re-split characters
+  document.querySelectorAll('.split').forEach((el) => {
+    if (el.children.length) {
+      splitCharsDeep(el)
+    } else {
+      splitChars(el)
+    }
+  })
+
+  // Re-split words for manifesto
+  document.querySelectorAll('.words').forEach(splitWords)
+
+  // If switched after intro, ensure chars and words are visible without needing full replay
+  if (isIntroFinished) {
+    document.querySelectorAll('.hero .char').forEach((c) => {
+      c.style.opacity = '1'
+      c.style.transform = 'none'
+    })
+    document.querySelectorAll('.hero .split').forEach((el) => {
+      el.style.opacity = '1'
+    })
+
+    // For manifesto words, wire up scrub tween again
+    gsap.killTweensOf('.manifesto .word')
+    gsap.to('.manifesto .word', {
+      opacity: 1,
+      stagger: 0.1,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: '.manifesto__text',
+        start: 'top 80%',
+        end: 'bottom 45%',
+        scrub: true,
+      },
+    })
+
+    ScrollTrigger.refresh()
+  }
+}
+
 /* ---------- colleges carousel ---------- */
 
 function buildCarousel() {
@@ -92,6 +188,7 @@ function initCursor() {
   if (window.matchMedia('(pointer: coarse)').matches) return
   const dot = document.querySelector('.cursor__dot')
   const ring = document.querySelector('.cursor__ring')
+  if (!dot || !ring) return
   const pos = { x: innerWidth / 2, y: innerHeight / 2 }
   const ringPos = { ...pos }
   window.addEventListener('pointermove', (e) => {
@@ -118,10 +215,12 @@ function initMagnetic() {
       const x = e.clientX - r.left - r.width / 2
       const y = e.clientY - r.top - r.height / 2
       gsap.to(el, { x: x * 0.3, y: y * 0.4, duration: 0.4, ease: 'power3.out' })
-      gsap.to(inner, { x: x * 0.15, y: y * 0.2, duration: 0.4, ease: 'power3.out' })
+      if (inner) {
+        gsap.to(inner, { x: x * 0.15, y: y * 0.2, duration: 0.4, ease: 'power3.out' })
+      }
     })
     el.addEventListener('pointerleave', () => {
-      gsap.to([el, inner], { x: 0, y: 0, duration: 0.8, ease: 'elastic.out(1, 0.4)' })
+      gsap.to([el, inner].filter(Boolean), { x: 0, y: 0, duration: 0.8, ease: 'elastic.out(1, 0.4)' })
     })
   })
 }
@@ -132,7 +231,6 @@ function sceneTargets() {
   const mid = innerHeight / 2
   const secs = [...document.querySelectorAll('[data-shape]')].map((el) => {
     const r = el.getBoundingClientRect()
-    // Tall sticky section: treat its whole scroll span as "holding" the shape.
     return {
       shape: +el.dataset.shape,
       tint: el.dataset.tint,
@@ -141,6 +239,7 @@ function sceneTargets() {
     }
   })
 
+  if (!secs.length) return { morph: 0, tint: '#2a3cff' }
   if (mid <= secs[0].bottom) return { morph: secs[0].shape, tint: secs[0].tint }
   for (let i = 0; i < secs.length - 1; i++) {
     const a = secs[i]
@@ -159,6 +258,11 @@ function sceneTargets() {
 /* ---------- boot ---------- */
 
 async function boot() {
+  let isIntroFinished = false
+
+  // Apply initial language content before splitting typography
+  updateContentForLanguage(currentLang)
+
   const countEl = document.getElementById('loaderCount')
   const barEl = document.getElementById('loaderBar')
   const counter = { v: 0 }
@@ -181,14 +285,15 @@ async function boot() {
   const stage = new Stage(document.getElementById('gl'))
   const cards = buildCarousel()
 
-  document.querySelectorAll('.split').forEach((el) => (el.children.length ? splitCharsDeep(el) : splitChars(el)))
-  document.querySelectorAll('.words').forEach(splitWords)
+  // Initial split
+  reapplyTypographySplits(false)
 
   const lenis = new Lenis({ lerp: 0.085, wheelMultiplier: 0.9 })
   lenis.on('scroll', ScrollTrigger.update)
   gsap.ticker.add((t) => lenis.raf(t * 1000))
   gsap.ticker.lagSmoothing(0)
   lenis.stop()
+
   document.querySelectorAll('a[href^="#"]').forEach((a) =>
     a.addEventListener('click', (e) => {
       e.preventDefault()
@@ -207,7 +312,12 @@ async function boot() {
   })
 
   /* intro */
-  const intro = gsap.timeline({ onComplete: () => lenis.start() })
+  const intro = gsap.timeline({
+    onComplete: () => {
+      lenis.start()
+      isIntroFinished = true
+    },
+  })
   intro
     .to('#loader', { yPercent: -100, duration: 1.1, ease: 'expo.inOut' })
     .to(stage.state, { intro: 1, duration: reduceMotion ? 0.1 : 3, ease: 'power3.out' }, '-=0.6')
@@ -250,6 +360,34 @@ async function boot() {
       ease: 'expo.out',
       scrollTrigger: { trigger: el, start: 'top 85%' },
       onUpdate: () => (el.textContent = Math.round(obj.v) + suffix),
+    })
+  })
+
+  /* language switcher event listener */
+  const mainEl = document.querySelector('main')
+  let isSwitchingLang = false
+
+  document.querySelectorAll('.lang-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const nextLang = btn.dataset.lang
+      if (nextLang === currentLang || isSwitchingLang) return
+      isSwitchingLang = true
+      currentLang = nextLang
+      localStorage.setItem('snu_lang', currentLang)
+
+      if (mainEl) {
+        mainEl.classList.add('lang-switching')
+        await new Promise((r) => setTimeout(r, 220))
+      }
+
+      updateContentForLanguage(currentLang)
+      reapplyTypographySplits(isIntroFinished)
+
+      if (mainEl) {
+        mainEl.classList.remove('lang-switching')
+      }
+
+      isSwitchingLang = false
     })
   })
 

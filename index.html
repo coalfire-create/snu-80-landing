@@ -33,49 +33,56 @@
     <header class="nav">
       <a href="#hero" class="nav__logo">SNU<sup>80</sup></a>
       <nav class="nav__links">
-        <a href="#world">Global</a>
-        <a href="#campus">Campus</a>
-        <a href="#colleges">Colleges</a>
-        <a href="#anniversary">80th</a>
+        <a href="#world" data-i18n="nav.global">Global</a>
+        <a href="#campus" data-i18n="nav.campus">Campus</a>
+        <a href="#colleges" data-i18n="nav.colleges">Colleges</a>
+        <a href="#anniversary" data-i18n="nav.anniversary">80th</a>
       </nav>
-      <a href="https://admission.snu.ac.kr" target="_blank" rel="noopener" class="btn btn--small">입학 안내</a>
+      <div class="nav__right">
+        <div class="lang-switch" id="langSwitch" role="group" aria-label="Language Selector">
+          <button type="button" class="lang-btn is-active" data-lang="ko" aria-label="한국어">KO</button>
+          <span class="lang-sep">/</span>
+          <button type="button" class="lang-btn" data-lang="en" aria-label="English">EN</button>
+        </div>
+        <a href="https://admission.snu.ac.kr" target="_blank" rel="noopener" class="btn btn--small" data-i18n="nav.admissions">입학 안내</a>
+      </div>
     </header>
 
     <main>
       <!-- 01 HERO -->
       <section class="section hero" id="hero" data-shape="0" data-tint="#2a3cff">
         <div class="hero__top">
-          <span class="eyebrow">SEOUL NATIONAL UNIVERSITY · EST. 1946</span>
-          <span class="eyebrow">37.46°N 126.95°E · GWANAK</span>
+          <span class="eyebrow" data-i18n="hero.eyebrowLeft">SEOUL NATIONAL UNIVERSITY · EST. 1946</span>
+          <span class="eyebrow" data-i18n="hero.eyebrowRight">37.46°N 126.95°E · GWANAK</span>
         </div>
         <div class="hero__bottom">
           <h1 class="hero__title">
-            <span class="line split">진리는</span>
-            <span class="line split">나의 빛<em class="latin">.</em></span>
+            <span class="line split" data-i18n-html="hero.titleLine1">진리는</span>
+            <span class="line split" data-i18n-html="hero.titleLine2">나의 빛<em class="latin">.</em></span>
           </h1>
           <div class="hero__side">
-            <p class="latin hero__motto split">Veritas Lux Mea</p>
-            <p class="hero__desc reveal">
+            <p class="latin hero__motto split" data-i18n="hero.motto">Veritas Lux Mea</p>
+            <p class="hero__desc reveal" data-i18n="hero.desc">
               대한민국 최초의 국립종합대학. 80년 동안 질문하고, 증명하고, 세상을 바꿔 온 사람들의 이름입니다.
             </p>
             <div class="hero__cta reveal">
-              <a href="#colleges" class="btn btn--primary magnetic"><span>단과대학 둘러보기</span></a>
-              <a href="#world" class="btn btn--ghost magnetic"><span>더 알아보기 ↓</span></a>
+              <a href="#colleges" class="btn btn--primary magnetic"><span data-i18n="hero.ctaColleges">단과대학 둘러보기</span></a>
+              <a href="#world" class="btn btn--ghost magnetic"><span data-i18n="hero.ctaExplore">더 알아보기 ↓</span></a>
             </div>
           </div>
         </div>
-        <div class="scroll-hint"><span></span>SCROLL</div>
+        <div class="scroll-hint"><span class="scroll-hint__line"></span><span class="scroll-hint__text" data-i18n="hero.scroll">SCROLL</span></div>
       </section>
 
       <!-- 02 MANIFESTO -->
       <section class="section manifesto" id="manifesto">
         <div class="marquee" aria-hidden="true">
-          <div class="marquee__track">
+          <div class="marquee__track" id="marqueeTrack">
             <span>VERITAS LUX MEA ✦ 진리는 나의 빛 ✦ SEOUL NATIONAL UNIVERSITY ✦ 서울대학교 ✦ </span>
             <span>VERITAS LUX MEA ✦ 진리는 나의 빛 ✦ SEOUL NATIONAL UNIVERSITY ✦ 서울대학교 ✦ </span>
           </div>
         </div>
-        <p class="manifesto__text words">
+        <p class="manifesto__text words" data-i18n="manifesto.text">
           우리는 정답을 외우는 곳이 아닙니다. 아무도 묻지 않은 질문을 먼저 던지고, 가장 어려운 문제 앞에 가장 오래 머무는 곳입니다.
           그 끈기가 한 사람을 바꾸고, 한 나라를 바꾸고, 결국 세계를 바꿉니다.
         </p>
@@ -84,12 +91,12 @@
       <!-- 03 GLOBAL -->
       <section class="section split-layout" id="world" data-shape="1" data-tint="#0a6cff">
         <div class="panel">
-          <span class="eyebrow">01 — GLOBAL</span>
-          <h2 class="h2 split">관악에서<br />세계로.</h2>
-          <p class="body reveal">
+          <span class="eyebrow" data-i18n="global.eyebrow">01 — GLOBAL</span>
+          <h2 class="h2 split" data-i18n-html="global.title">관악에서<br />세계로.</h2>
+          <p class="body reveal" data-i18n="global.desc">
             서울의 한 점에서 시작된 연구가 지구 반대편의 교실과 실험실로 이어집니다. 교환학생, 공동연구, 국제 네트워크 — 서울대의 지성은 국경에서 멈추지 않습니다.
           </p>
-          <ul class="tags reveal">
+          <ul class="tags reveal" id="globalTags">
             <li>국제 교환학생</li>
             <li>글로벌 공동연구</li>
             <li>해외 석학 초청</li>
@@ -101,25 +108,25 @@
       <!-- 04 CAMPUS -->
       <section class="section campus" id="campus" data-shape="2" data-tint="#c98a2b">
         <div class="campus__head">
-          <span class="eyebrow">02 — CAMPUS</span>
-          <h2 class="h2 split">관악산의 품,<br />가장 큰 교실.</h2>
+          <span class="eyebrow" data-i18n="campus.eyebrow">02 — CAMPUS</span>
+          <h2 class="h2 split" data-i18n-html="campus.title">관악산의 품,<br />가장 큰 교실.</h2>
         </div>
         <div class="stats">
           <div class="stat reveal">
             <span class="stat__num" data-count="1946">0</span>
-            <span class="stat__label">개교</span>
+            <span class="stat__label" data-i18n="campus.stats.0">개교</span>
           </div>
           <div class="stat reveal">
             <span class="stat__num" data-count="80" data-suffix="th">0</span>
-            <span class="stat__label">개교 주년</span>
+            <span class="stat__label" data-i18n="campus.stats.1">개교 주년</span>
           </div>
           <div class="stat reveal">
             <span class="stat__num" data-count="1975">0</span>
-            <span class="stat__label">관악캠퍼스 이전</span>
+            <span class="stat__label" data-i18n="campus.stats.2">관악캠퍼스 이전</span>
           </div>
           <div class="stat reveal">
             <span class="stat__num" data-count="16">0</span>
-            <span class="stat__label">단과대학 · 학부</span>
+            <span class="stat__label" data-i18n="campus.stats.3">단과대학 · 학부</span>
           </div>
         </div>
       </section>
@@ -128,8 +135,8 @@
       <section class="colleges" id="colleges" data-shape="3" data-tint="#6a4dff">
         <div class="colleges__sticky">
           <div class="colleges__head">
-            <span class="eyebrow">03 — COLLEGES</span>
-            <h2 class="h2">당신의 질문은<br />어디에 있나요?</h2>
+            <span class="eyebrow" data-i18n="colleges.eyebrow">03 — COLLEGES</span>
+            <h2 class="h2" data-i18n-html="colleges.title">당신의 질문은<br />어디에 있나요?</h2>
           </div>
           <div class="carousel">
             <div class="carousel__ring" id="ring"></div>
@@ -141,14 +148,14 @@
       <!-- 06 80th -->
       <section class="section anniversary" id="anniversary" data-shape="4" data-tint="#d9a441">
         <div class="anniversary__inner">
-          <span class="eyebrow">1946 — 2026</span>
-          <h2 class="h2 anniversary__title split">다음 80년의 주인공은<br />당신입니다.</h2>
-          <a href="https://admission.snu.ac.kr" target="_blank" rel="noopener" class="btn btn--gold magnetic btn--big"><span>지원하기 →</span></a>
+          <span class="eyebrow" data-i18n="anniversary.eyebrow">1946 — 2026</span>
+          <h2 class="h2 anniversary__title split" data-i18n-html="anniversary.title">다음 80년의 주인공은<br />당신입니다.</h2>
+          <a href="https://admission.snu.ac.kr" target="_blank" rel="noopener" class="btn btn--gold magnetic btn--big"><span data-i18n="anniversary.applyBtn">지원하기 →</span></a>
         </div>
         <footer class="footer">
-          <span>서울특별시 관악구 관악로 1 · 서울대학교</span>
-          <span class="latin">Veritas Lux Mea</span>
-          <span>© 2026 SNU 80th Promotion</span>
+          <span data-i18n="footer.address">서울특별시 관악구 관악로 1 · 서울대학교</span>
+          <span class="latin" data-i18n="footer.motto">Veritas Lux Mea</span>
+          <span data-i18n="footer.copy">© 2026 SNU 80th Promotion</span>
         </footer>
       </section>
     </main>

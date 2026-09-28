@@ -209,8 +209,59 @@ main {
   transform: scaleX(1);
   transform-origin: left;
 }
+.nav__right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  font-family: var(--sans);
+  user-select: none;
+}
+.lang-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 4px 2px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  opacity: 0.4;
+  position: relative;
+  transition: opacity 0.3s var(--ease), color 0.3s;
+}
+.lang-btn:hover {
+  opacity: 0.9;
+}
+.lang-btn.is-active {
+  opacity: 1;
+  font-weight: 700;
+}
+.lang-btn.is-active::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 0;
+  height: 1px;
+  background: currentColor;
+}
+.lang-sep {
+  opacity: 0.25;
+  font-size: 10px;
+  pointer-events: none;
+}
 @media (max-width: 760px) {
   .nav__links { display: none; }
+  .nav__right { gap: 12px; }
+  .lang-btn { font-size: 10px; padding: 2px; }
 }
 
 /* ---------- common ---------- */
@@ -375,7 +426,7 @@ main {
   letter-spacing: 0.4em;
   color: var(--muted);
 }
-.scroll-hint span {
+.scroll-hint__line {
   width: 1px;
   height: 44px;
   background: linear-gradient(var(--fg), transparent);
@@ -590,6 +641,30 @@ main {
   font-size: 20px;
   color: var(--muted);
 }
+html[lang="en"] .card__en {
+  order: 1;
+  font-family: var(--serif);
+  font-style: normal;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.25;
+  color: var(--fg);
+  margin-top: 0;
+}
+html[lang="en"] .card__ko {
+  order: 2;
+  margin-top: 6px;
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 15px;
+  color: var(--muted);
+}
+.lang-fade-transition {
+  transition: opacity 0.25s var(--ease);
+}
+.lang-switching {
+  opacity: 0.3;
+}
 .colleges__progress {
   height: 1px;
   background: var(--line);
@@ -643,5 +718,5 @@ main {
 
 @media (prefers-reduced-motion: reduce) {
   .grain,
-  .scroll-hint span { animation: none; }
+  .scroll-hint__line { animation: none; }
 }
