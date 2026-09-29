@@ -60,8 +60,9 @@ const particleVertex = /* glsl */ `
     if (i < 0.5) return position;
     // Majestic SNU Official Emblem: Firmly facing forward with zero rotation, standing majestic and clear
     if (i < 1.5) return p1 + vec3(uGlobeX, 0.0, 0.0);
-    if (i < 2.5) return vec3(p2.x, -3.0 + terrainH(p2), p2.z);
-    if (i < 3.5) return rotX(0.42) * rotY(uRingRot + uTime * 0.05) * p3;
+    // Slot 2 is the colleges ring, slot 3 the Gwanak terrain (page order).
+    if (i < 2.5) return rotX(0.42) * rotY(uRingRot + uTime * 0.05) * p2;
+    if (i < 3.5) return vec3(p3.x, -3.0 + terrainH(p3), p3.z);
     return p4;
   }
 
@@ -81,17 +82,17 @@ const particleVertex = /* glsl */ `
       vec3 emblemColor = mix(radiantGold, superNova, isGold * 0.45);
       return mix(snuBlue, emblemColor, smoothstep(0.15, 0.65, aRand + twinkle * 0.2));
     }
-    if (i < 2.5) {
-      float h = terrainH(p2) / 4.2;
+    if (i < 2.5) return mix(vec3(0.55, 0.45, 1.0), vec3(0.35, 0.8, 1.0), aRand);
+    if (i < 3.5) {
+      float h = terrainH(p3) / 4.2;
       return mix(vec3(0.12, 0.2, 0.75), vec3(1.0, 0.78, 0.38), smoothstep(0.15, 0.8, h));
     }
-    if (i < 3.5) return mix(vec3(0.55, 0.45, 1.0), vec3(0.35, 0.8, 1.0), aRand);
     return mix(vec3(1.0, 0.8, 0.42), vec3(1.0, 0.97, 0.9), aRand);
   }
 
   float shapeAlpha(float i){
-    if (i > 1.5 && i < 2.5) {
-      return smoothstep(-30.0, -20.0, p2.z) * (1.0 - smoothstep(1.5, 4.0, p2.z));
+    if (i > 2.5 && i < 3.5) {
+      return smoothstep(-30.0, -20.0, p3.z) * (1.0 - smoothstep(1.5, 4.0, p3.z));
     }
     return 1.0;
   }
@@ -240,8 +241,8 @@ export class Stage {
     const serif = '900 260px "Noto Serif KR", serif'
     geo.setAttribute('position', new THREE.BufferAttribute(textShape(n, 'SNU', { width: mobile ? 4.6 : 10, font: serif, y: mobile ? 1.8 : 1.4 }), 3))
     geo.setAttribute('p1', new THREE.BufferAttribute(snuOfficialEmblemShape(n, this.emblemSize, { y: mobile ? -2.6 : 0.05 }), 3))
-    geo.setAttribute('p2', new THREE.BufferAttribute(terrainShape(n), 3))
-    geo.setAttribute('p3', new THREE.BufferAttribute(ringShape(n), 3))
+    geo.setAttribute('p2', new THREE.BufferAttribute(ringShape(n), 3))
+    geo.setAttribute('p3', new THREE.BufferAttribute(terrainShape(n), 3))
     geo.setAttribute('p4', new THREE.BufferAttribute(textShape(n, '80', { width: mobile ? 3.8 : 5.2, font: serif, depth: 0.6, y: 2.4 }), 3))
 
     const rnd = new Float32Array(n)

@@ -5,6 +5,7 @@ import Lenis from 'lenis'
 import { Stage } from './gl.js'
 import { translations } from './i18n.js'
 import { GateExperience } from './gate.js'
+import { initClimb } from './climbSection.js'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -400,7 +401,16 @@ async function boot() {
   const step = 360 / n
   const ringEl = document.getElementById('ring')
 
+  // The Gwanak climb (after the gate). While its pinned canvas fills the
+  // screen, the particle stage behind it stops rendering.
+  const climbSec = await initClimb()
+  let lastT = performance.now()
+
   gsap.ticker.add(() => {
+    const now = performance.now()
+    const dt = Math.min((now - lastT) / 1000, 0.05)
+    lastT = now
+    climbSec.update(dt)
     const target = sceneTargets()
     stage.state.morphTarget = target.morph
     stage.setTint(target.tint)
@@ -418,7 +428,7 @@ async function boot() {
       c.classList.toggle('is-active', Math.abs(a) < step / 2)
     })
 
-    stage.update()
+    if (!climbSec.covering()) stage.update()
   })
 
   /* Sha Gate & Starlight Influx Experience */

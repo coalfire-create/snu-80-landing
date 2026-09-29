@@ -36,7 +36,7 @@
         <a href="#world" data-i18n="nav.global">Global</a>
         <a href="#campus" data-i18n="nav.campus">Campus</a>
         <a href="#colleges" data-i18n="nav.colleges">Colleges</a>
-        <a href="#anniversary" data-i18n="nav.anniversary">80th</a>
+        <a href="#climb" data-i18n="nav.climb">관악산</a>
       </nav>
       <div class="nav__right">
         <div class="lang-switch" id="langSwitch" role="group" aria-label="Language Selector">
@@ -105,24 +105,27 @@
         </div>
       </section>
 
-      <!-- 04 CAMPUS -->
-      <section class="section campus" id="campus" data-shape="2" data-tint="#c98a2b">
+      <!-- 04 COLLEGES (sticky 3D carousel) -->
+      <section class="colleges" id="colleges" data-shape="2" data-tint="#6a4dff">
+        <div class="colleges__sticky">
+          <div class="colleges__head">
+            <span class="eyebrow" data-i18n="colleges.eyebrow">02 — COLLEGES</span>
+            <h2 class="h2" data-i18n-html="colleges.title">당신의 질문은<br />어디에 있나요?</h2>
+          </div>
+          <div class="carousel">
+            <div class="carousel__ring" id="ring"></div>
+          </div>
+          <div class="colleges__progress"><span id="collegeProgress"></span></div>
+        </div>
+      </section>
+
+      <!-- 05 CAMPUS → starlight gate -->
+      <section class="section campus" id="campus" data-shape="3" data-tint="#c98a2b">
         <div class="campus__head">
-          <span class="eyebrow" data-i18n="campus.eyebrow">02 — CAMPUS</span>
+          <span class="eyebrow" data-i18n="campus.eyebrow">03 — CAMPUS</span>
           <h2 class="h2 split" data-i18n-html="campus.title">관악산의 품,<br />가장 큰 교실.</h2>
         </div>
 
-        <!-- 02.1 SIGNATURE '샤' GATE & STARLIGHT INFLUX ANIMATION -->
-        <div class="gate-stage" id="gateStage">
-          <div class="gate-sticky">
-            <canvas id="gateCanvas" class="gate-canvas"></canvas>
-            <div class="gate-badge">
-              <span class="gate-badge__tag" data-i18n="gate.tag">SIGNATURE LANDMARK · 관악의 문</span>
-              <h3 class="gate-badge__title" data-i18n="gate.title">진리의 문으로 나아가는 발걸음</h3>
-              <p class="gate-badge__desc" data-i18n="gate.desc">80년 동안 수많은 지성의 별들이 이 문을 지나 대한민국과 인류의 내일을 밝혔습니다.</p>
-            </div>
-          </div>
-        </div>
         <div class="stats">
           <div class="stat reveal">
             <span class="stat__num" data-count="1946">0</span>
@@ -141,34 +144,90 @@
             <span class="stat__label" data-i18n="campus.stats.3">단과대학 · 학부</span>
           </div>
         </div>
-      </section>
-
-      <!-- 05 COLLEGES (sticky 3D carousel) -->
-      <section class="colleges" id="colleges" data-shape="3" data-tint="#6a4dff">
-        <div class="colleges__sticky">
-          <div class="colleges__head">
-            <span class="eyebrow" data-i18n="colleges.eyebrow">03 — COLLEGES</span>
-            <h2 class="h2" data-i18n-html="colleges.title">당신의 질문은<br />어디에 있나요?</h2>
+        <!-- 02.1 SIGNATURE '샤' GATE & STARLIGHT INFLUX ANIMATION -->
+        <div class="gate-stage" id="gateStage">
+          <div class="gate-sticky">
+            <canvas id="gateCanvas" class="gate-canvas"></canvas>
+            <div class="gate-badge">
+              <span class="gate-badge__tag" data-i18n="gate.tag">SIGNATURE LANDMARK · 관악의 문</span>
+              <h3 class="gate-badge__title" data-i18n="gate.title">진리의 문으로 나아가는 발걸음</h3>
+              <p class="gate-badge__desc" data-i18n="gate.desc">80년 동안 수많은 지성의 별들이 이 문을 지나 대한민국과 인류의 내일을 밝혔습니다.</p>
+            </div>
           </div>
-          <div class="carousel">
-            <div class="carousel__ring" id="ring"></div>
-          </div>
-          <div class="colleges__progress"><span id="collegeProgress"></span></div>
         </div>
       </section>
 
-      <!-- 06 80th -->
-      <section class="section anniversary" id="anniversary" data-shape="4" data-tint="#d9a441">
-        <div class="anniversary__inner">
-          <span class="eyebrow" data-i18n="anniversary.eyebrow">1946 — 2026</span>
-          <h2 class="h2 anniversary__title split" data-i18n-html="anniversary.title">다음 80년의 주인공은<br />당신입니다.</h2>
-          <a href="https://admission.snu.ac.kr" target="_blank" rel="noopener" class="btn btn--gold magnetic btn--big"><span data-i18n="anniversary.applyBtn">지원하기 →</span></a>
+
+
+      <!-- 06 CLIMB: through the gate's light onto the real Gwanak-san, up to the summit -->
+      <section class="climb" id="climb">
+        <div class="climb__sticky">
+          <canvas id="climbCanvas" class="climb__canvas"></canvas>
+          <div class="cl-tags" id="climbTags" aria-hidden="true"></div>
+
+          <aside class="cl-hud" id="climbHud" aria-hidden="true">
+            <div>
+              <span class="cl-hud__label" data-i18n="climb.alt">해발 ALT</span>
+              <span class="cl-hud__value"><span id="climbAlt">69</span><small>m</small></span>
+            </div>
+            <div class="cl-gauge">
+              <span class="cl-gauge__fill" id="climbGauge"></span>
+              <span class="cl-gauge__tick" style="bottom: 0">0</span>
+              <span class="cl-gauge__tick" style="bottom: 31.6%">200</span>
+              <span class="cl-gauge__tick" style="bottom: 63.3%">400</span>
+              <span class="cl-gauge__tick cl-gauge__tick--top" style="bottom: 100%">632</span>
+            </div>
+            <div>
+              <span class="cl-hud__label" data-i18n="climb.dist">거리</span>
+              <span class="cl-hud__small"><span id="climbDist">0.0</span> / <span id="climbTotal">3.4</span> km</span>
+            </div>
+          </aside>
+
+          <div class="cl-stages">
+            <div class="cl-stage" data-from="0.03" data-to="0.13">
+              <span class="eyebrow" data-i18n="climb.s1.eyebrow">04 — GWANAK · 정문 69m</span>
+              <h2 class="cl-stage__title" data-i18n-html="climb.s1.title">문을 지나면,<br />산이 시작됩니다.</h2>
+              <p class="cl-stage__body" data-i18n="climb.s1.body">서울대학교 정문에서 관악산 정상까지 3.4km. 실제 지형 위를, 스크롤로 올라가 보세요.</p>
+            </div>
+            <div class="cl-stage" data-from="0.18" data-to="0.32">
+              <span class="eyebrow">1975</span>
+              <h2 class="cl-stage__title" data-i18n-html="climb.s2.title">흩어져 있던 대학이<br />관악으로 모였습니다.</h2>
+              <p class="cl-stage__body" data-i18n="climb.s2.body">서울 곳곳에 나뉘어 있던 단과대학들은 1975년, 이 산자락 아래 하나의 캠퍼스로 모였습니다.</p>
+            </div>
+            <div class="cl-stage" data-from="0.37" data-to="0.5">
+              <span class="eyebrow" data-i18n="climb.s3.eyebrow">캠퍼스 남쪽 끝</span>
+              <h2 class="cl-stage__title" data-i18n-html="climb.s3.title">캠퍼스의 끝이<br />곧 등산로의 시작.</h2>
+            </div>
+            <div class="cl-stage" data-from="0.55" data-to="0.67">
+              <span class="eyebrow" data-i18n="climb.s4.eyebrow">능선</span>
+              <h2 class="cl-stage__title" data-i18n-html="climb.s4.title">숨이 찰수록,<br />시야는 넓어집니다.</h2>
+            </div>
+            <div class="cl-stage" data-from="0.7" data-to="0.82">
+              <span class="eyebrow" data-i18n="climb.s5.eyebrow">자운암 국기봉 · 482m</span>
+              <h2 class="cl-stage__title" data-i18n-html="climb.s5.title">정상까지<br />얼마 남지 않았습니다.</h2>
+            </div>
+            <div class="cl-stage cl-stage--summit" data-from="0.86" data-to="0.935">
+              <span class="eyebrow" data-i18n="climb.summit.eyebrow">관악산 정상 · 연주대</span>
+              <h2 class="cl-summit" data-i18n="climb.summit.title">해발 632m.</h2>
+            </div>
+            <div class="cl-stage cl-stage--cta" data-from="0.95" data-to="1.01">
+              <span class="eyebrow" data-i18n="anniversary.eyebrow">1946 — 2026 · 개교 80주년</span>
+              <p class="cl-cta__lead" data-i18n="climb.cta.lead">발아래 펼쳐진 저 불빛이, 서울대학교입니다.</p>
+              <h2 class="cl-cta__title" data-i18n-html="climb.cta.title">여러분도,<br />이 학교에 입학하고<br />싶지 않으신가요?</h2>
+              <div class="cl-cta__actions">
+                <a href="https://admission.snu.ac.kr" target="_blank" rel="noopener" class="btn btn--gold magnetic btn--big"><span data-i18n="anniversary.applyBtn">입학 안내 보기 →</span></a>
+                <a href="#climb" class="btn btn--ghost magnetic"><span data-i18n="climb.again">다시 오르기 ↑</span></a>
+              </div>
+            </div>
+          </div>
+
+          <div class="climb__veil" id="climbVeil"></div>
+          <footer class="footer climb__footer">
+            <span data-i18n="footer.address">서울특별시 관악구 관악로 1 · 서울대학교</span>
+            <span class="latin" data-i18n="footer.motto">Veritas Lux Mea</span>
+            <span><span data-i18n="footer.copy">© 2026 SNU 80th Promotion</span> · Terrain: AWS Terrain Tiles · Map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a></span>
+          </footer>
         </div>
-        <footer class="footer">
-          <span data-i18n="footer.address">서울특별시 관악구 관악로 1 · 서울대학교</span>
-          <span class="latin" data-i18n="footer.motto">Veritas Lux Mea</span>
-          <span data-i18n="footer.copy">© 2026 SNU 80th Promotion</span>
-        </footer>
       </section>
     </main>
 

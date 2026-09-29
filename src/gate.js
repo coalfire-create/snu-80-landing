@@ -249,12 +249,14 @@ export class GateExperience {
       ctx.drawImage(this.sprites[pt.color], q.x - s, q.y - s, s * 2, s * 2)
     }
 
-    // Passing through: light floods the frame, then clears on the far side.
-    const flood = Math.max(0, 1 - Math.abs(p - 0.9) / 0.1)
+    // Passing through: light floods the frame and stays white — the climb
+    // section below opens on the same white and clears onto the real 정문.
+    const f = Math.min(1, Math.max(0, (p - 0.78) / 0.2))
+    const flood = f * f * (3 - 2 * f)
     if (flood > 0) {
       ctx.globalCompositeOperation = 'source-over'
       ctx.globalAlpha = 1
-      ctx.fillStyle = `rgba(225, 236, 255, ${flood * 0.85})`
+      ctx.fillStyle = `rgba(225, 236, 255, ${flood})`
       ctx.fillRect(0, 0, this.width, this.height)
     }
     ctx.globalAlpha = 1

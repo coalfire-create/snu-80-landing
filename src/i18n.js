@@ -8,7 +8,7 @@ export const translations = {
       global: 'Global',
       campus: 'Campus',
       colleges: 'Colleges',
-      anniversary: '80th',
+      climb: '관악산',
       admissions: '입학 안내',
     },
     hero: {
@@ -34,7 +34,7 @@ export const translations = {
       emblemDesc: '국립서울대학교 정식 심볼마크 · VERITAS LUX MEA',
     },
     campus: {
-      eyebrow: '02 — CAMPUS',
+      eyebrow: '03 — CAMPUS',
       title: '관악산의 품,<br />가장 큰 교실.',
       stats: [
         { label: '개교' },
@@ -49,13 +49,25 @@ export const translations = {
       desc: '80년 동안 수많은 지성의 별들이 이 문을 지나 대한민국과 인류의 내일을 밝혔습니다.',
     },
     colleges: {
-      eyebrow: '03 — COLLEGES',
+      eyebrow: '02 — COLLEGES',
       title: '당신의 질문은<br />어디에 있나요?',
     },
     anniversary: {
-      eyebrow: '1946 — 2026',
+      eyebrow: '1946 — 2026 · 개교 80주년',
       title: '다음 80년의 주인공은<br />당신입니다.',
-      applyBtn: '지원하기 →',
+      applyBtn: '입학 안내 보기 →',
+    },
+    climb: {
+      alt: '해발 ALT',
+      dist: '거리',
+      s1: { eyebrow: '04 — GWANAK · 정문 69m', title: '문을 지나면,<br />산이 시작됩니다.', body: '서울대학교 정문에서 관악산 정상까지 3.4km. 실제 지형 위를, 스크롤로 올라가 보세요.' },
+      s2: { title: '흩어져 있던 대학이<br />관악으로 모였습니다.', body: '서울 곳곳에 나뉘어 있던 단과대학들은 1975년, 이 산자락 아래 하나의 캠퍼스로 모였습니다.' },
+      s3: { eyebrow: '캠퍼스 남쪽 끝', title: '캠퍼스의 끝이<br />곧 등산로의 시작.' },
+      s4: { eyebrow: '능선', title: '숨이 찰수록,<br />시야는 넓어집니다.' },
+      s5: { eyebrow: '자운암 국기봉 · 482m', title: '정상까지<br />얼마 남지 않았습니다.' },
+      summit: { eyebrow: '관악산 정상 · 연주대', title: '해발 632m.' },
+      cta: { lead: '발아래 펼쳐진 저 불빛이, 서울대학교입니다.', title: '여러분도,<br />이 학교에 입학하고<br />싶지 않으신가요?' },
+      again: '다시 오르기 ↑',
     },
     footer: {
       address: '서울특별시 관악구 관악로 1 · 서울대학교',
@@ -71,7 +83,7 @@ export const translations = {
       global: 'Global',
       campus: 'Campus',
       colleges: 'Colleges',
-      anniversary: '80th',
+      climb: 'Gwanak',
       admissions: 'Admissions',
     },
     hero: {
@@ -97,7 +109,7 @@ export const translations = {
       emblemDesc: 'Official Seal of Seoul National University · 1946',
     },
     campus: {
-      eyebrow: '02 — CAMPUS',
+      eyebrow: '03 — CAMPUS',
       title: 'Embraced by Mt. Gwanak,<br />Our Greatest Classroom.',
       stats: [
         { label: 'Established' },
@@ -112,13 +124,25 @@ export const translations = {
       desc: 'For 80 years, countless brilliant minds have entered through this gate to illuminate Korea and the world.',
     },
     colleges: {
-      eyebrow: '03 — COLLEGES',
+      eyebrow: '02 — COLLEGES',
       title: 'Where Does Your<br />Question Lie?',
     },
     anniversary: {
-      eyebrow: '1946 — 2026',
+      eyebrow: '1946 — 2026 · 80TH ANNIVERSARY',
       title: 'The next 80 years<br />begin with you.',
-      applyBtn: 'Apply Now →',
+      applyBtn: 'Admissions →',
+    },
+    climb: {
+      alt: 'ALTITUDE',
+      dist: 'DISTANCE',
+      s1: { eyebrow: '04 — GWANAK · MAIN GATE 69m', title: 'Past the gate,<br />the mountain begins.', body: '3.4 km from the SNU main gate to the summit of Mt. Gwanak. Climb the real terrain, one scroll at a time.' },
+      s2: { title: 'Scattered colleges<br />came together at Gwanak.', body: 'In 1975, colleges spread across Seoul gathered into one campus at the foot of this mountain.' },
+      s3: { eyebrow: 'SOUTH END OF CAMPUS', title: 'Where campus ends,<br />the trail begins.' },
+      s4: { eyebrow: 'THE RIDGE', title: 'The harder you breathe,<br />the wider you see.' },
+      s5: { eyebrow: 'JAUNAM FLAG PEAK · 482m', title: 'The summit<br />is close.' },
+      summit: { eyebrow: 'SUMMIT OF MT. GWANAK · YEONJUDAE', title: '632m.' },
+      cta: { lead: 'Those lights below are Seoul National University.', title: "Don't you want<br />to study here<br />too?" },
+      again: 'Climb again ↑',
     },
     footer: {
       address: '1 Gwanak-ro, Gwanak-gu, Seoul · Seoul National University',
