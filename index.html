@@ -88,20 +88,83 @@
         </p>
       </section>
 
-      <!-- 03 GLOBAL -->
-      <section class="section split-layout world-section" id="world" data-shape="1" data-tint="#0a6cff">
-        <div class="panel">
-          <span class="eyebrow" data-i18n="global.eyebrow">01 — GLOBAL</span>
-          <h2 class="h2 split" data-i18n-html="global.title">관악에서<br />세계로.</h2>
-          <p class="body reveal" data-i18n="global.desc">
-            서울의 한 점에서 시작된 연구가 지구 반대편의 교실과 실험실로 이어집니다. 교환학생, 공동연구, 국제 네트워크 — 서울대의 지성은 국경에서 멈추지 않습니다.
+      <!-- 03 ALUMNI CONSTELLATION -->
+      <section class="section" id="world" data-shape="1" data-tint="#050814" style="height: 100vh; display: flex; align-items: center; justify-content: center; position: relative;">
+        
+        <div style="position: absolute; top: 15vh; left: 5vw; max-width: 600px; z-index: 10; pointer-events: none;">
+          <span class="eyebrow">01 — THE GREAT MINDS</span>
+          <h2 class="h2 split" style="font-size: 4rem; line-height: 1.1;">SNU의 별들,<br />하나의 위대한 빛이 되다.</h2>
+          <p class="body reveal" style="font-size: 1.1rem; margin-top: 1.5rem; max-width: 400px; color: rgba(255,255,255,0.7);">
+            빛나는 별에 마우스를 올려, 인류의 역사를 바꾼 7인의 궤적을 확인해 보세요.
           </p>
-          <ul class="tags reveal" id="globalTags">
-            <li>국제 교환학생</li>
-            <li>글로벌 공동연구</li>
-            <li>해외 석학 초청</li>
-            <li>다국적 캠퍼스</li>
-          </ul>
+        </div>
+
+        <!-- Spatial Alumni Cards mapping to the 7 stars -->
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20;">
+          
+          <!-- Alkaid -->
+          <div class="star-hotspot" style="left: 15%; top: 25%;">
+            <div class="alumni-card">
+              <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ae/Lee_O-young_%28cropped%29_%28cropped%29.jpg/500px-Lee_O-young_%28cropped%29_%28cropped%29.jpg" alt="이어령" style="width: 100%; border-radius: 8px; margin-bottom: 15px; aspect-ratio: 1/1; object-fit: cover;">
+              <h4 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 10px;">"젊음은 나이가 아니라 생각의 크기입니다."</h4>
+              <p style="color: #8892b0; font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">故 이어령 (초대 문화부 장관)<br><span style="color: #4a8bff;">국어국문학과 52학번</span></p>
+            </div>
+          </div>
+
+          <!-- Mizar -->
+          <div class="star-hotspot" style="left: 28%; top: 32%;">
+            <div class="alumni-card">
+              <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/7/70/Ban_Ki-moon_February_2016.jpg/500px-Ban_Ki-moon_February_2016.jpg" alt="반기문" style="width: 100%; border-radius: 8px; margin-bottom: 15px; aspect-ratio: 1/1; object-fit: cover;">
+              <h4 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 10px;">"세계의 평화는 결코 공짜로 얻어지지 않는다."</h4>
+              <p style="color: #8892b0; font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">반기문 (제8대 UN 사무총장)<br><span style="color: #4a8bff;">외교학과 70학번</span></p>
+            </div>
+          </div>
+
+          <!-- Alioth -->
+          <div class="star-hotspot" style="left: 42%; top: 38%;">
+            <div class="alumni-card">
+              <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/5/59/151001_%EC%A1%B0%EC%88%98%EB%AF%B8_05.jpg/500px-151001_%EC%A1%B0%EC%88%98%EB%AF%B8_05.jpg" alt="조수미" style="width: 100%; border-radius: 8px; margin-bottom: 15px; aspect-ratio: 1/1; object-fit: cover;">
+              <h4 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 10px;">"음악은 국경을 넘어 하나로 연결하는 힘입니다."</h4>
+              <p style="color: #8892b0; font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">조수미 (세계적인 소프라노)<br><span style="color: #4a8bff;">성악과 81학번</span></p>
+            </div>
+          </div>
+
+          <!-- Megrez -->
+          <div class="star-hotspot" style="left: 55%; top: 45%;">
+            <div class="alumni-card">
+              <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Dr_Lee_Jong-wook.jpg/500px-Dr_Lee_Jong-wook.jpg" alt="이종욱" style="width: 100%; border-radius: 8px; margin-bottom: 15px; aspect-ratio: 1/1; object-fit: cover;">
+              <h4 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 10px;">"우리의 행동이 누군가의 생명을 구합니다."</h4>
+              <p style="color: #8892b0; font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">故 이종욱 (제6대 WHO 사무총장)<br><span style="color: #4a8bff;">의학과 76학번</span></p>
+            </div>
+          </div>
+
+          <!-- Phecda -->
+          <div class="star-hotspot" style="left: 60%; top: 65%;">
+            <div class="alumni-card">
+              <img src="/architect.jpg" alt="정기용" style="width: 100%; border-radius: 8px; margin-bottom: 15px; aspect-ratio: 1/1; object-fit: cover;">
+              <h4 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 10px;">"건축은 형태가 아니라 사람들의 삶을 짓는 것이다."</h4>
+              <p style="color: #8892b0; font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">故 정기용 (기적의 도서관 건축가)<br><span style="color: #4a8bff;">미술대학 64학번</span></p>
+            </div>
+          </div>
+
+          <!-- Merak -->
+          <div class="star-hotspot" style="left: 78%; top: 60%;">
+            <div class="alumni-card">
+              <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/20140114_Hwang_Dong-hyuk.jpg/500px-20140114_Hwang_Dong-hyuk.jpg" alt="황동혁" style="width: 100%; border-radius: 8px; margin-bottom: 15px; aspect-ratio: 1/1; object-fit: cover;">
+              <h4 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 10px;">"가장 한국적인 이야기가 가장 세계적인 이야기다."</h4>
+              <p style="color: #8892b0; font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">황동혁 ('오징어 게임' 감독)<br><span style="color: #4a8bff;">신문방송학과 90학번</span></p>
+            </div>
+          </div>
+
+          <!-- Dubhe -->
+          <div class="star-hotspot" style="left: 82%; top: 40%;">
+            <div class="alumni-card">
+              <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2e/Bang-Si-Hyuk.jpg/500px-Bang-Si-Hyuk.jpg" alt="방시혁" style="width: 100%; border-radius: 8px; margin-bottom: 15px; aspect-ratio: 1/1; object-fit: cover;">
+              <h4 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 10px;">"음악과 진심으로 세계의 벽을 허물다."</h4>
+              <p style="color: #8892b0; font-size: 0.9rem; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 10px;">방시혁 (하이브 의장)<br><span style="color: #4a8bff;">미학과 91학번</span></p>
+            </div>
+          </div>
+          
         </div>
       </section>
 

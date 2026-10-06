@@ -56,10 +56,14 @@ const particleVertex = /* glsl */ `
     return h * 4.2 * (0.25 + 0.75 * valley);
   }
 
-  vec3 shapePos(float i){
+  vec3 shapePos(float i, float randVal){
     if (i < 0.5) return position;
-    // Majestic SNU Official Emblem: Firmly facing forward with zero rotation, standing majestic and clear
-    if (i < 1.5) return p1 + vec3(uGlobeX, 0.0, 0.0);
+    // Big Dipper
+    if (i < 1.5) {
+      // Fix for the massive GPU lag (overdraw): 
+      // Do NOT rotate huge coordinates into the Z axis, otherwise they hit the camera and point sizes explode!
+      return p1 * 1.2; 
+    }
     // Slot 2 is the colleges ring, slot 3 the Gwanak terrain (page order).
     if (i < 2.5) return rotX(0.42) * rotY(uRingRot + uTime * 0.05) * p2;
     if (i < 3.5) return vec3(p3.x, -3.0 + terrainH(p3), p3.z);
@@ -69,18 +73,13 @@ const particleVertex = /* glsl */ `
   vec3 shapeColor(float i, vec3 p){
     if (i < 0.5) return mix(vec3(0.85, 0.9, 1.0), vec3(0.35, 0.55, 1.0), aRand);
     if (i < 1.5) {
-      // Authentic SNU Official Emblem: Brilliant Starlight Gold & Classic Seoul National University Blue
-      vec3 snuBlue = vec3(0.06, 0.35, 0.96);
-      vec3 sapphire = vec3(0.25, 0.65, 1.0);
-      vec3 radiantGold = vec3(1.0, 0.84, 0.38) * 2.4;
-      vec3 superNova = vec3(1.0, 0.98, 0.95) * 2.2;
-
-      // Sparkling diamond twinkle along the contours
-      float twinkle = sin(uTime * 2.2 + aRand * 6.28) * 0.5 + 0.5;
-      float isGold = smoothstep(0.32, 0.78, aRand * 0.7 + twinkle * 0.3);
-
-      vec3 emblemColor = mix(radiantGold, superNova, isGold * 0.45);
-      return mix(snuBlue, emblemColor, smoothstep(0.15, 0.65, aRand + twinkle * 0.2));
+      // Because thousands of particles overlap, additive blending makes them EXTREMELY bright.
+      // We must use very low base colors so they don't blow out into a giant white blob.
+      vec3 starCore = vec3(0.05, 0.05, 0.05); // Tiny value, adds up to white
+      vec3 starAura = mix(vec3(0.01, 0.03, 0.1), vec3(0.05, 0.04, 0.01), aRand);
+      
+      // We can use aRand > 0.85 as aura.
+      return mix(starCore, starAura, step(0.85, aRand));
     }
     if (i < 2.5) return mix(vec3(0.55, 0.45, 1.0), vec3(0.35, 0.8, 1.0), aRand);
     if (i < 3.5) {
@@ -105,8 +104,8 @@ const particleVertex = /* glsl */ `
     // Staggered per-particle transition.
     float t = smoothstep(0.0, 1.0, clamp((f - aRand * 0.35) / 0.65, 0.0, 1.0));
 
-    vec3 a = shapePos(i0);
-    vec3 b = shapePos(i1);
+    vec3 a = shapePos(i0, aRand);
+    vec3 b = shapePos(i1, aRand);
     vec3 pos = mix(a, b, t);
 
     // Turbulent swirl mid-flight.
@@ -118,9 +117,9 @@ const particleVertex = /* glsl */ `
     );
     pos += swirl * mid * 1.6;
 
-    // Constellation stability: Keep SNU emblem steady and sharp like true stars in the night sky
-    float isEmblem = 1.0 - smoothstep(0.0, 0.7, abs(m - 1.0));
-    pos += swirl * mix(0.025, 0.006, isEmblem);
+    // Subtle stability for the Globe to maintain shape while swirling
+    float isGlobe = 1.0 - smoothstep(0.0, 0.7, abs(m - 1.0));
+    pos += swirl * mix(0.025, 0.015, isGlobe);
 
     // Intro: particles collapse in from a wide cloud.
     vec3 scatter = normalize(swirl + 0.001) * (8.0 + aRand * 14.0);
@@ -136,8 +135,13 @@ const particleVertex = /* glsl */ `
     vec4 mv = modelViewMatrix * vec4(pos, 1.0);
     gl_Position = projectionMatrix * mv;
 
-    // Finer point size for the emblem so contours and text don't blend into blobs
-    float pointScale = mix(1.0, 0.72, isEmblem);
+    // Size adjustments
+    float isGalaxySec = 1.0 - smoothstep(0.0, 0.7, abs(m - 1.0));
+    float pointScale = 1.0;
+    if (isGalaxySec > 0.5) {
+      // Point scale must be small so it doesn't blur into a giant blob
+      pointScale = mix(0.4, 0.2, step(0.85, aRand));
+    }
     gl_PointSize = uSize * aSize * uPixelRatio * pointScale * (1.0 + push * 0.6) / -mv.z;
 
     vColor = mix(shapeColor(i0, a), shapeColor(i1, b), t) * (1.0 + push * 0.5);
@@ -240,7 +244,7 @@ export class Stage {
     this.emblemSize = mobile ? 4.6 : 8.8
     const serif = '900 260px "Noto Serif KR", serif'
     geo.setAttribute('position', new THREE.BufferAttribute(textShape(n, 'SNU', { width: mobile ? 4.6 : 10, font: serif, y: mobile ? 1.8 : 1.4 }), 3))
-    geo.setAttribute('p1', new THREE.BufferAttribute(snuOfficialEmblemShape(n, this.emblemSize, { y: mobile ? -2.6 : 0.05 }), 3))
+    geo.setAttribute('p1', new THREE.BufferAttribute(globeShape(n, this.globeR), 3))
     geo.setAttribute('p2', new THREE.BufferAttribute(ringShape(n), 3))
     geo.setAttribute('p3', new THREE.BufferAttribute(terrainShape(n), 3))
     geo.setAttribute('p4', new THREE.BufferAttribute(textShape(n, '80', { width: mobile ? 3.8 : 5.2, font: serif, depth: 0.6, y: 2.4 }), 3))
