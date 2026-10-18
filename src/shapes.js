@@ -116,32 +116,33 @@ export function snuOfficialEmblemShape(count, size = 9.4, { depth = 0.18, y = 0.
 
   const out = new Float32Array(count * 3)
 
-  // Half the particles trace the contours so every symbol reads clearly
-  const edgeCount = Math.floor(count * 0.6)
+  // Most particles trace the contours so every symbol reads clearly
+  const edgeCount = Math.floor(count * 0.75)
   const edgeTotal = edgePts.length / 2
 
   for (let i = 0; i < edgeCount; i++) {
     const idx = Math.floor(Math.random() * edgeTotal) * 2
-    const px = (edgePts[idx] - cx + rand(-0.6, 0.6)) * scale
-    const py = -(edgePts[idx + 1] - cy + rand(-0.6, 0.6)) * scale + y
+    // Very tiny jitter for a sharp, crisp line
+    const px = (edgePts[idx] - cx + rand(-0.1, 0.1)) * scale
+    const py = -(edgePts[idx + 1] - cy + rand(-0.1, 0.1)) * scale + y
     out[i * 3] = px
     out[i * 3 + 1] = py
-    out[i * 3 + 2] = rand(-depth * 0.4, depth * 0.4)
+    out[i * 3 + 2] = rand(-depth * 0.1, depth * 0.1)
   }
 
-  // ...and most of the rest fill the inked body evenly
-  const fillCount = Math.floor(count * 0.35)
+  // ...and some of the rest fill the inked body evenly
+  const fillCount = Math.floor(count * 0.23)
   const fillTotal = fillPts.length / 2
   for (let i = edgeCount; i < edgeCount + fillCount; i++) {
     const idx = Math.floor(Math.random() * fillTotal) * 2
-    const px = (fillPts[idx] - cx + rand(-1, 1)) * scale
-    const py = -(fillPts[idx + 1] - cy + rand(-1, 1)) * scale + y
+    const px = (fillPts[idx] - cx + rand(-0.4, 0.4)) * scale
+    const py = -(fillPts[idx + 1] - cy + rand(-0.4, 0.4)) * scale + y
     out[i * 3] = px
     out[i * 3 + 1] = py
-    out[i * 3 + 2] = rand(-depth * 0.7, depth * 0.7)
+    out[i * 3 + 2] = rand(-depth * 0.3, depth * 0.3)
   }
 
-  // The remaining 5% form a faint dust haze around the emblem
+  // The remaining 2% form a faint dust haze around the emblem
   for (let i = edgeCount + fillCount; i < count; i++) {
     const a = Math.random() * Math.PI * 2
     const r = (size * 0.45) + Math.pow(Math.random(), 2) * (size * 0.3)
@@ -153,47 +154,45 @@ export function snuOfficialEmblemShape(count, size = 9.4, { depth = 0.18, y = 0.
   return out
 }
 
-// Fibonacci sphere with orbiting rings and a dense cluster marking Seoul.
-export function globeShape(count, radius = 3.1) {
+// The particles collapse into the Big Dipper (7 stars of the compass)
+export function globeShape(count, radius = 5.0) {
   const out = new Float32Array(count * 3)
-  const sphereCount = Math.floor(count * 0.72)
-  const seoulCount = Math.floor(count * 0.04)
-  const golden = Math.PI * (3 - Math.sqrt(5))
+  
+  // Approximate Big Dipper layout (scaled to fit nicely on screen)
+  const spread = 1.8;
+  const dipper = [
+    { x: -3.0 * spread, y: 1.5 * spread },   // Alkaid
+    { x: -1.8 * spread, y: 1.0 * spread },   // Mizar
+    { x: -0.6 * spread, y: 0.6 * spread },   // Alioth
+    { x: 0.5 * spread, y: 0.2 * spread },    // Megrez
+    { x: 0.8 * spread, y: -1.2 * spread },   // Phecda
+    { x: 2.2 * spread, y: -1.0 * spread },   // Merak
+    { x: 2.3 * spread, y: 0.5 * spread }     // Dubhe
+  ];
+  
+  for (let i = 0; i < count; i++) {
+    const bucket = i % 7;
+    const targetX = dipper[bucket].x;
+    const targetY = dipper[bucket].y;
 
-  for (let i = 0; i < sphereCount; i++) {
-    const y = 1 - (i / (sphereCount - 1)) * 2
-    const r = Math.sqrt(1 - y * y)
-    const th = golden * i
-    out[i * 3] = Math.cos(th) * r * radius
-    out[i * 3 + 1] = y * radius
-    out[i * 3 + 2] = Math.sin(th) * r * radius
+    // Make 85% of particles form a hyper-dense core, 15% form an aura
+    if (Math.random() < 0.85) {
+      // Extremely dense core
+      const r = Math.pow(Math.random(), 4) * 0.02;
+      const a = Math.random() * Math.PI * 2;
+      out[i * 3] = targetX + Math.cos(a) * r;
+      out[i * 3 + 1] = targetY + Math.sin(a) * r;
+      out[i * 3 + 2] = (Math.random() - 0.5) * 0.02;
+    } else {
+      // Small swirling aura
+      const r = Math.pow(Math.random(), 2) * 0.2; // Reduced aura size
+      const a = Math.random() * Math.PI * 2;
+      out[i * 3] = targetX + Math.cos(a) * r;
+      out[i * 3 + 1] = targetY + Math.sin(a) * r;
+      out[i * 3 + 2] = (Math.random() - 0.5) * 0.2;
+    }
   }
-
-  // Seoul: lat 37.46N, lon 126.95E
-  const lat = (37.46 * Math.PI) / 180
-  const lon = (126.95 * Math.PI) / 180
-  for (let i = sphereCount; i < sphereCount + seoulCount; i++) {
-    const la = lat + rand(-0.06, 0.06)
-    const lo = lon + rand(-0.06, 0.06)
-    const rr = radius * rand(1.0, 1.25)
-    out[i * 3] = Math.cos(la) * Math.cos(lo) * rr
-    out[i * 3 + 1] = Math.sin(la) * rr
-    out[i * 3 + 2] = -Math.cos(la) * Math.sin(lo) * rr
-  }
-
-  // Two tilted rings
-  for (let i = sphereCount + seoulCount; i < count; i++) {
-    const ring = i % 2
-    const a = Math.random() * Math.PI * 2
-    const rr = radius * (ring ? rand(1.45, 1.6) : rand(1.8, 1.86))
-    const tilt = ring ? 0.45 : -0.3
-    const x = Math.cos(a) * rr
-    const z = Math.sin(a) * rr
-    out[i * 3] = x
-    out[i * 3 + 1] = z * Math.sin(tilt) + rand(-0.03, 0.03)
-    out[i * 3 + 2] = z * Math.cos(tilt)
-  }
-  return out
+  return out;
 }
 
 // Flat grid; the vertex shader lifts it into a scrolling ridge terrain (Gwanak-san).

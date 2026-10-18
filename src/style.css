@@ -1041,3 +1041,48 @@ html[lang="en"] .card__ko {
     display: none;
   }
 }
+
+/* Alumni Star Hotspots */
+.star-hotspot {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 50;
+}
+.star-hotspot::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 12px; height: 12px;
+  background: rgba(255,255,255,0.8);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 15px 5px rgba(255, 255, 255, 0.4);
+  transition: all 0.3s ease;
+}
+.star-hotspot:hover::before {
+  transform: translate(-50%, -50%) scale(1.5);
+  background: rgba(255,255,255,1);
+}
+.alumni-card {
+  position: absolute;
+  top: 100%; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  width: 320px;
+  background: rgba(0,0,0,0.85);
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.star-hotspot:hover .alumni-card {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(10px);
+}
